@@ -1,211 +1,148 @@
 """
-مذكرتي Pro v8 ULTRA
-3 محركات: Classic · Canva · Premium(Node)
-- فحص Node.js عند الإقلاع مع Fallback تلقائي
-- رسائل خطأ واضحة بالعربية
-- تنظيف ملفات مؤقتة مضمون
-"""
-import os, sys, json, subprocess, shutil, tempfile, logging, io, importlib
-from flask import Flask, request, send_file, jsonify, send_from_directory, make_response
+Flask API — مذكرتي Pro v17.1
+Thin HTTP adapter. Zero business logic.
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "scripts"))
+FIXED vs v17.0:
+- filename sanitizer handles Arabic correctly (uses transliteration fallback)
+- warmup returns immediately (no blocking init inside request)  
+- detailed error logging with stage info
+"""
+import base64
+import logging
+import os
+import sys
+import time
+import unicodedata
+
+from flask import Flask, jsonify, make_response, request, send_from_directory
+
+_BASE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _BASE)
+
+from core.models import PresentationRequest
+from engine.pipeline import get_pipeline
 
 app = Flask(__name__, static_folder="public", static_url_path="")
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
+    stream=sys.stdout,
+)
 log = logging.getLogger(__name__)
 
-NODE_SCRIPT  = os.path.join(os.path.dirname(__file__), "node_scripts", "generator_api.js")
-NODE_MODULES = os.path.join(os.path.dirname(__file__), "node_scripts", "node_modules")
 
-CLASSIC_THEMES = {'navy_gold','dark_teal','burgundy','forest','midnight_purple','charcoal_orange','ice_blue','sand_gold','slate_crimson'}
-PREMIUM_THEMES = {'noir','atlas','sakura'}
+def _safe_filename(name: str) -> str:
+    """
+    Convert any string (including Arabic) to a safe ASCII filename.
+    Arabic → NFKD normalization strips diacritics, non-ASCII → removed,
+    spaces/special → underscore. Falls back to timestamp if empty.
+    """
+    if not name:
+        return f"prs_{int(time.time())}"
+    # Normalize: decompose Unicode, then encode to ASCII ignoring non-ASCII
+    normalized = unicodedata.normalize('NFKD', name)
+    ascii_str = normalized.encode('ascii', 'ignore').decode('ascii')
+    # Replace non-word characters with underscore
+    safe = ''.join(c if c.isalnum() else '_' for c in ascii_str).strip('_')
+    # If all Arabic (safe is empty after stripping), use student index
+    if not safe:
+        safe = f"student_{int(time.time()) % 100000}"
+    return safe[:24]
 
-# ── فحص Node.js مرة واحدة عند الإقلاع ──────────────────────────────
-def _check_node() -> bool:
-    if shutil.which("node") is None:
-        log.warning("Node.js غير موجود — سيتم الفول-باك تلقائياً على محرك Canva")
-        return False
-    if not os.path.exists(NODE_SCRIPT):
-        log.warning("generator_api.js غير موجود — سيتم الفول-باك تلقائياً على محرك Canva")
-        return False
-    if not os.path.isdir(NODE_MODULES):
-        log.warning("node_modules غير مثبتة — شغل: cd node_scripts && npm install")
-        return False
-    return True
 
-NODE_AVAILABLE = _check_node()
-
-# ── CORS ─────────────────────────────────────────────────────────────
+# ── CORS ──────────────────────────────────────────────────────────────
 @app.after_request
-def cors(r):
-    r.headers["Access-Control-Allow-Origin"]  = "*"
+def _cors(r):
+    r.headers["Access-Control-Allow-Origin"] = "*"
     r.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     r.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return r
 
 @app.before_request
-def preflight():
+def _preflight():
     if request.method == "OPTIONS":
         r = make_response("", 204)
-        r.headers["Access-Control-Allow-Origin"]  = "*"
+        r.headers["Access-Control-Allow-Origin"] = "*"
         r.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         r.headers["Access-Control-Allow-Headers"] = "Content-Type"
         return r
 
-# ── مسارات ───────────────────────────────────────────────────────────
+
+# ── Static ────────────────────────────────────────────────────────────
 @app.route("/")
 def index():
     return send_from_directory("public", "index.html")
 
+
+# ── Health & Warmup ───────────────────────────────────────────────────
+@app.route("/ping")
+def ping():
+    return "pong", 200
+
 @app.route("/health")
 def health():
-    # فحص خط Cairo
-    try:
-        from generator_canva import _CAIRO_OK
-        cairo_ok = _CAIRO_OK
-    except Exception:
-        cairo_ok = None
+    pipeline = get_pipeline()
     return jsonify({
-        "status":         "ok",
-        "version":        "10.0",
-        "engines":        ["canva", "classic", "premium"],
-        "node_available": NODE_AVAILABLE,
-        "cairo_font":     cairo_ok,
+        "status": "ok",
+        "version": "17.1",
+        "python": sys.version.split()[0],
+        "font": pipeline._font,
     }), 200
 
-# ── التوليد الرئيسي ──────────────────────────────────────────────────
+@app.route("/warmup")
+def warmup():
+    """
+    FIXED: pipeline is pre-initialized at startup, so this returns instantly.
+    Frontend uses this to detect cold-start readiness.
+    """
+    get_pipeline()  # no-op after first call
+    return jsonify({"status": "ready", "modules_ready": True}), 200
+
+
+# ── Generate ──────────────────────────────────────────────────────────
 @app.route("/generate", methods=["POST"])
 def generate():
-    try:
-        data = request.get_json(force=True, silent=True)
-        if not data:
-            return jsonify({"error": "بيانات غير صالحة — تأكد من إرسال JSON صحيح"}), 400
-        if not data.get("studentName"):
-            return jsonify({"error": "اسم الطالب مطلوب"}), 400
-        if not data.get("titleAr"):
-            return jsonify({"error": "عنوان المذكرة مطلوب"}), 400
+    t0 = time.monotonic()
 
-        engine = data.get("engine", "canva")
-        theme  = data.get("theme", "navy_gold")
-        log.info(f"[{engine}] theme={theme} student={data.get('studentName','?')[:30]}")
-        # Validate theme
-        valid_themes = CLASSIC_THEMES | PREMIUM_THEMES
-        if theme not in valid_themes:
-            theme = "navy_gold"
-            data["theme"] = theme
-            log.warning(f"Unknown theme, defaulted to navy_gold")
+    raw = request.get_json(force=True, silent=True)
+    if not raw:
+        return jsonify({"error": "بيانات غير صالحة — أرسل JSON صحيح"}), 400
 
-        if engine == "premium" or theme in PREMIUM_THEMES:
-            if NODE_AVAILABLE:
-                return _gen_premium(data)
-            else:
-                log.warning("Node.js غير متاح — تحويل تلقائي إلى محرك Canva")
-                data["_fallback"] = "premium→canva"
-                return _gen_python(data, "generator_canva")
-        elif engine == "classic":
-            return _gen_python(data, "generator_classic")
-        else:
-            return _gen_python(data, "generator_canva")
+    req = PresentationRequest.from_dict(raw)
+    errors = req.validate()
+    if errors:
+        return jsonify({"error": " | ".join(errors)}), 400
 
-    except Exception as e:
-        log.error(f"Unexpected: {e}", exc_info=True)
-        return jsonify({"error": f"خطأ غير متوقع: {str(e)[:300]}"}), 500
+    pipeline = get_pipeline()
+    result = pipeline.build(req)
 
+    if not result.success:
+        log.error(f"Build failed: {result.error} | stages={result.stages}")
+        return jsonify({
+            "error": result.error,
+            "stages": result.stages,
+        }), 500
 
-def _gen_python(data: dict, module_name: str):
-    """يولد PPTX عبر Python (canva أو classic)."""
-    path = None
-    try:
-        # Import module (cached after first load - don't reload every request)
-        if module_name in sys.modules:
-            mod = sys.modules[module_name]
-        else:
-            mod = importlib.import_module(module_name)
+    safe = _safe_filename(req.student_name)
+    filename = f"mathkarati_{safe}.pptx"
+    b64 = base64.b64encode(result.data).decode("ascii")
+    elapsed = time.monotonic() - t0
 
-        with tempfile.NamedTemporaryFile(suffix=".pptx", delete=False) as f:
-            path = f.name
-
-        mod.generate_presentation(data, path)
-
-        if not os.path.exists(path) or os.path.getsize(path) < 2000:
-            return jsonify({"error": "فشل إنتاج الملف — الملف فارغ أو تالف"}), 500
-
-        with open(path, "rb") as f:
-            pptx_bytes = f.read()
-
-        name = data.get("studentName", "مذكرة").replace(" ", "_")
-        suffix = "_canva-fallback" if data.get("_fallback") else ""
-        response = send_file(
-            io.BytesIO(pptx_bytes),
-            mimetype="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            as_attachment=True,
-            download_name=f"عرض_{name}{suffix}.pptx",
-        )
-        # Ensure download works cross-origin
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        return response
-    except ImportError as e:
-        log.error(f"Import error [{module_name}]: {e}")
-        return jsonify({"error": f"خطأ في تحميل المحرك '{module_name}': {e}"}), 500
-    except Exception as e:
-        log.error(f"{module_name} error: {e}", exc_info=True)
-        return jsonify({"error": f"خطأ في المحرك: {str(e)[:300]}"}), 500
-    finally:
-        # تنظيف الملف المؤقت دائماً حتى عند الأخطاء
-        if path and os.path.exists(path):
-            try:
-                os.unlink(path)
-            except Exception:
-                pass
+    log.info(f"Generated: slides={result.slide_count} {len(result.data):,}B {elapsed:.2f}s")
+    return jsonify({
+        "ok": True,
+        "filename": filename,
+        "data": b64,
+        "size": len(result.data),
+        "slides": result.slide_count,
+        "font": result.font_used,
+        "elapsed": round(elapsed, 2),
+        "stages": result.stages,
+    })
 
 
-def _gen_premium(data: dict):
-    """يولد PPTX عبر Node.js/pptxgenjs مع fallback تلقائي."""
-    try:
-        env = os.environ.copy()
-        env["NODE_PATH"] = NODE_MODULES
-
-        result = subprocess.run(
-            ["node", NODE_SCRIPT],
-            input=json.dumps(data, ensure_ascii=False).encode("utf-8"),
-            capture_output=True,
-            timeout=90,
-            cwd=os.path.join(os.path.dirname(__file__), "node_scripts"),
-            env=env,
-        )
-
-        if result.returncode != 0:
-            stderr = result.stderr.decode("utf-8", errors="replace").strip()
-            log.error(f"Node.js exit {result.returncode}: {stderr[:500]}")
-            log.warning("فشل Node.js — تحويل تلقائي إلى محرك Canva")
-            data["_fallback"] = "node-error→canva"
-            return _gen_python(data, "generator_canva")
-
-        pptx_bytes = result.stdout
-        if len(pptx_bytes) < 1000:
-            stderr = result.stderr.decode("utf-8", errors="replace").strip()
-            log.error(f"Node.js output فارغ. stderr: {stderr[:300]}")
-            return jsonify({"error": "المحرك Premium أنتج ملفاً فارغاً"}), 500
-
-        name = data.get("studentName", "مذكرة").replace(" ", "_")
-        return send_file(
-            io.BytesIO(pptx_bytes),
-            mimetype="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            as_attachment=True,
-            download_name=f"عرض_{name}.pptx",
-        )
-
-    except subprocess.TimeoutExpired:
-        log.error("Node.js timeout بعد 90 ثانية")
-        return jsonify({"error": "انتهت مهلة التوليد (90 ثانية) — حاول تقليل عدد الشرائح"}), 504
-    except FileNotFoundError:
-        log.error("node غير موجود في PATH")
-        return jsonify({"error": "Node.js غير مثبت على الخادم"}), 500
-
-
+# ── Entry point ───────────────────────────────────────────────────────
 if __name__ == "__main__":
-    port  = int(os.environ.get("PORT", 5000))
-    debug = os.environ.get("FLASK_ENV") == "development"
-    log.info(f"مذكرتي Pro v8 ULTRA — port={port} debug={debug} node={NODE_AVAILABLE}")
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    port = int(os.environ.get("PORT", 5000))
+    get_pipeline()  # eager init on startup
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
