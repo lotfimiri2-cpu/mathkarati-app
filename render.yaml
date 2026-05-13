@@ -1,9 +1,11 @@
 services:
   - type: web
-    name: mathkarati-v17
-    env: python
+    name: mathkarati-pro
+    runtime: python
     buildCommand: bash build.sh
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 180 --keep-alive 5 --worker-class gthread
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 300 --worker-class sync --preload
     envVars:
+      - key: FLASK_ENV
+        value: production
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: "3.11.0"
