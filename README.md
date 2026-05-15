@@ -1,104 +1,48 @@
-# مذكرتي Pro v7 — Canva Level 🎓
+# مذكرتي Pro v17 — Full Architectural Rebuild
 
-منشئ عروض PowerPoint أكاديمية احترافية للجامعات الجزائرية  
-**3 محركات · 11 لوناً · 14 شريحة · 3 لغات**
-
----
-
-## 🏗️ هيكل المشروع
+## Architecture
 
 ```
-mathkarati-pro/
-├── app.py                      ← Flask server (3 engines router)
-├── requirements.txt            ← Python deps (flask, gunicorn, python-pptx, lxml)
-├── Procfile                    ← gunicorn start command
-├── render.yaml                 ← Render.com config
-├── build.sh                    ← Build script
-├── scripts/
-│   ├── generator_canva.py      ← ✨ Canva Level engine (8 palettes × 3 families)
-│   └── generator_classic.py   ← Classic engine (8 palettes × 3 layouts)
-├── node_scripts/
-│   ├── generator_api.js        ← Premium engine (3 styles: Noir/Atlas/Sakura)
-│   └── package.json            ← pptxgenjs dependency
-└── public/
-    └── index.html              ← واجهة 6 خطوات · 3 لغات · Toggle للشرائح
+mathkarati-v17/
+├── app.py                 # Flask API (thin HTTP adapter only)
+├── core/
+│   ├── models.py          # Domain models + validation
+│   └── themes.py          # All 12 color themes (immutable)
+├── engine/
+│   ├── primitives.py      # Low-level drawing (rect, text, gradient…)
+│   ├── slides.py          # Slide builders (make_cover, make_results…)
+│   └── pipeline.py        # Export orchestrator (single entry point)
+├── public/
+│   └── index.html         # Frontend (unchanged UX)
+├── requirements.txt
+├── build.sh
+└── render.yaml
 ```
 
----
+## What changed from v16
 
-## 🚀 النشر على Render
+| v16 | v17 |
+|-----|-----|
+| 3 engines (canva, classic, node) | 1 unified Python engine |
+| ~4500 lines across 3 generator files | ~1200 lines, clean separation |
+| Threading + subprocess fragility | No threads, no subprocess |
+| Temp files on disk | In-memory BytesIO only |
+| Base64 transport (kept) | Base64 transport (kept — it works) |
+| Fallback chaos | No fallbacks needed |
+| Hard to debug | Each layer independently testable |
 
-### Build Command:
-```
-pip install -r requirements.txt && cd node_scripts && npm install --production
-```
+## Design principles
 
-### Start Command:
-```
-gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
-```
+- **Deterministic**: same input → same output, every time
+- **No side effects**: generation is pure (in, bytes out)
+- **Fail fast**: validation before any I/O
+- **Memory-safe**: pptx.save() → BytesIO, never disk
+- **Stream-safe**: BytesIO is fully read before return
+- **Thread-safe**: pipeline is stateless after font detection
 
-### Runtime: **Python**
-
-> ملاحظة: Render يثبّت Node.js تلقائياً مع Python services.
-
----
-
-## 🎨 المحركات والألوان
-
-### ✨ Canva Level (الافتراضي) — python-pptx
-| اللون | العائلة | الطابع |
-|-------|---------|--------|
-| navy_gold | NOIR | أزرق ملكي ذهبي |
-| midnight_purple | NOIR | بنفسجي ليلي |
-| forest | NOIR | أخضر غابي |
-| sand_gold | NOIR | ذهبي رملي |
-| dark_teal | VIVID | تيل حيوي |
-| charcoal_orange | VIVID | فحمي برتقالي |
-| burgundy | VIVID | بورغندي |
-| ice_blue | MINIMAL | أزرق ثلجي نظيف |
-
-### Classic — python-pptx
-نفس الألوان الـ 8 بتخطيطات Classic/Bold/Minimal
-
-### Premium — PptxGenJS (Node.js)
-| النمط | الطابع |
-|-------|--------|
-| Noir Académique | أكاديمي فاخر داكن |
-| Atlas Corporate | استشاري McKinsey |
-| Sakura Créative | إبداعي طوكيو |
-
----
-
-## 📊 الشرائح (14 شريحة قابلة للتحكم)
-
-1. الغلاف (دائماً)
-2. المقدمة + المقاربة
-3. خطة الدراسة (الفصول والمباحث)
-4. الإشكالية + التساؤل الرئيسي + الفرعية
-5. الأهداف والفرضيات
-6. أهمية الدراسة
-7. المنهجية + العينة + المجالات
-8. لوحة KPI
-9. النتائج
-10. الخاتمة
-11. التوصيات
-12. الآفاق البحثية
-13. المراجع
-14. شريحة الشكر (ثلاث لغات)
-
----
-
-## 💻 التشغيل محلياً
+## Deploy
 
 ```bash
-pip install -r requirements.txt
-cd node_scripts && npm install && cd ..
-python app.py
+bash build.sh
+gunicorn app:app --bind 0.0.0.0:5000 --workers 2 --timeout 120
 ```
-
-ثم: http://localhost:5000
-
----
-
-*مذكرتي Pro v7 — Canva Level · 2024–2025*
