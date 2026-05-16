@@ -10,6 +10,7 @@ from engine.primitives import (
     W, H, rect, rrect, oval, bg, hline, vline,
     gradient_fill, gradient_rect, shadow, set_solid_alpha, txt, blank_slide,
 )
+from engine.typography import TS, FONT_TITLE, FONT_BODY, FONT_NUM, FONT_EN, display_size, stat_size
 from core.themes import Theme
 from core.models import PresentationRequest
 
@@ -46,14 +47,14 @@ def _header(slide, T: Theme, title: str, page_num: int = 0):
     # عنوان الشريحة
     txt(slide, title,
         MARGIN_X, 0.3, W - MARGIN_X * 2, HEADER_H - 0.5,
-        font=_FONT, size=20, bold=True,
+        font=FONT_TITLE, size=TS.H1, bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     # رقم الصفحة يسار
     if page_num > 0:
         txt(slide, str(page_num),
             0.3, 0.3, 1.2, HEADER_H - 0.5,
-            font="Calibri", size=28, bold=True,
+            font=FONT_NUM, size=TS.STAT_MD, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.LEFT, rtl=False)
 
     # شريط سفلي
@@ -96,7 +97,7 @@ def make_cover(prs: Presentation, req: PresentationRequest, T: Theme):
     if req.institution:
         txt(slide, req.institution,
             2.0, 0.9, W - 4.0, 0.9,
-            font=_FONT, size=13, bold=False,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False,
             color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
     # خط فاصل تحت المؤسسة
@@ -108,13 +109,13 @@ def make_cover(prs: Presentation, req: PresentationRequest, T: Theme):
 
     txt(slide, req.title_ar,
         2.5, title_y, W - 5.0, H * 0.28,
-        font=_FONT, size=title_size, bold=True,
+        font=FONT_TITLE, size=title_size, bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
     if req.title_en:
         txt(slide, req.title_en,
             2.5, title_y + H * 0.27, W - 5.0, 0.9,
-            font="Calibri", size=11, bold=False, italic=True,
+            font=FONT_EN, size=TS.BODY, bold=False, italic=True,
             color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
     # خط فاصل تحت العنوان
@@ -132,13 +133,13 @@ def make_cover(prs: Presentation, req: PresentationRequest, T: Theme):
         vline(slide, W - MARGIN_X - 0.08, y, row_h - 0.06, T.accent_rgb, thickness=0.08)
         # التسمية
         txt(slide, label, MARGIN_X + 0.2, y, 4.5, row_h,
-            font=_FONT, size=11, bold=True,
+            font=FONT_TITLE, size=TS.H3, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
         # الفاصل
         vline(slide, W / 2, y + 0.1, row_h - 0.26, T.muted_rgb, thickness=0.04)
         # القيمة
         txt(slide, value, W / 2 + 0.3, y, W / 2 - MARGIN_X - 0.5, row_h,
-            font=_FONT, size=12, bold=is_bold,
+            font=FONT_BODY, size=TS.BODY_LG, bold=is_bold,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     info_row("اسم الطالب", req.student_name, info_y, is_bold=True)
@@ -179,13 +180,13 @@ def make_intro(prs, req: PresentationRequest, T: Theme):
         vline(slide, W - MARGIN_X - 0.1, y, card_h, T.accent_rgb, thickness=0.1)
         # تسمية
         txt(slide, lbl, cx, y, cw - 0.4, 0.65,
-            font=_FONT, size=14, bold=True,
+            font=FONT_TITLE, size=TS.H2, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
         # خط تحت التسمية
         hline(slide, cx, y + 0.7, cw - 0.4, T.muted_rgb, thickness=0.03)
         # المحتوى
         txt(slide, val, cx, y + 0.8, cw - 0.4, card_h - 0.9,
-            font=_FONT, size=12, bold=False,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     return slide
@@ -216,7 +217,7 @@ def make_plan(prs, req: PresentationRequest, T: Theme):
 
         # رقم الفصل
         txt(slide, f"الفصل {i + 1}", cx, y, 3.0, row_h,
-            font=_FONT, size=11, bold=True,
+            font=FONT_TITLE, size=TS.H3, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
         # خط فاصل عمودي
@@ -224,13 +225,13 @@ def make_plan(prs, req: PresentationRequest, T: Theme):
 
         # عنوان الفصل
         txt(slide, ch.title, cx + 3.4, y, cw - 4.0, row_h,
-            font=_FONT, size=13, bold=False,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
         # الصفحات
         if ch.pages:
             txt(slide, ch.pages, cx, y, 1.5, row_h,
-                font="Calibri", size=10, bold=False,
+                font=FONT_NUM, size=TS.LABEL, bold=False,
                 color=T.muted_rgb, align=PP_ALIGN.LEFT, rtl=False)
 
         # خط فاصل أفقي سفلي
@@ -251,11 +252,11 @@ def make_problem(prs, req: PresentationRequest, T: Theme):
         # بطاقة الإشكالية
         vline(slide, W - MARGIN_X - 0.14, cy, 2.6, T.accent_rgb, thickness=0.14)
         txt(slide, "الإشكالية الرئيسية", cx, cy, cw - 0.3, 0.65,
-            font=_FONT, size=13, bold=True,
+            font=FONT_TITLE, size=TS.H3, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
         hline(slide, cx, cy + 0.68, cw - 0.3, T.muted_rgb, thickness=0.03)
         txt(slide, req.main_problem, cx, cy + 0.78, cw - 0.3, 1.7,
-            font=_FONT, size=12, bold=False,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
         cy += 2.75
 
@@ -263,10 +264,10 @@ def make_problem(prs, req: PresentationRequest, T: Theme):
         hline(slide, cx, cy, cw, T.accent_rgb, thickness=0.06)
         cy += 0.15
         txt(slide, "التساؤل الرئيسي", cx, cy, cw, 0.6,
-            font=_FONT, size=12, bold=True,
+            font=FONT_TITLE, size=TS.H3, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
         txt(slide, req.main_question, cx, cy + 0.65, cw, 1.3,
-            font=_FONT, size=12, bold=False, italic=True,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False, italic=True,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
         cy += 2.1
 
@@ -274,7 +275,7 @@ def make_problem(prs, req: PresentationRequest, T: Theme):
         hline(slide, cx, cy, cw, T.muted_rgb, thickness=0.03)
         cy += 0.2
         txt(slide, "التساؤلات الفرعية", cx, cy, cw, 0.55,
-            font=_FONT, size=11, bold=True,
+            font=FONT_TITLE, size=TS.H3, bold=True,
             color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
         cy += 0.6
         avail = H - cy - FOOTER_H - 0.5
@@ -282,7 +283,7 @@ def make_problem(prs, req: PresentationRequest, T: Theme):
         for i, q in enumerate(req.sub_questions[:6]):
             y = cy + i * sub_h
             txt(slide, f"{'─'} {q}", cx, y, cw, sub_h,
-                font=_FONT, size=11, bold=False,
+                font=FONT_BODY, size=TS.BODY, bold=False,
                 color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     return slide
@@ -310,7 +311,7 @@ def make_objectives(prs, req: PresentationRequest, T: Theme):
         rect(slide, x, cy, col_w, 0.65, T.bg2_rgb)
         vline(slide, x + col_w - 0.1, cy, 0.65, T.accent_rgb, thickness=0.1)
         txt(slide, lbl, x, cy, col_w - 0.2, 0.65,
-            font=_FONT, size=14, bold=True,
+            font=FONT_TITLE, size=TS.H2, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
         hline(slide, x, cy + 0.65, col_w, T.accent_rgb, thickness=0.06)
@@ -327,12 +328,12 @@ def make_objectives(prs, req: PresentationRequest, T: Theme):
 
             # رقم
             txt(slide, str(j + 1), x, iy, 0.7, item_h,
-                font="Calibri", size=11, bold=True,
+                font=FONT_NUM, size=TS.H3, bold=True,
                 color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
             vline(slide, x + 0.75, iy + 0.05, item_h - 0.1, T.muted_rgb, thickness=0.03)
 
             txt(slide, item, x + 0.85, iy + 0.08, col_w - 1.1, item_h - 0.16,
-                font=_FONT, size=10.5, bold=False,
+                font=FONT_BODY, size=TS.BODY_SM, bold=False,
                 color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
             hline(slide, x, iy + item_h, col_w, T.bg_rgb, thickness=0.08)
@@ -363,13 +364,13 @@ def make_importance(prs, req: PresentationRequest, T: Theme):
 
         # رقم كبير
         txt(slide, f"{i + 1:02d}", cx, y, 1.5, item_h,
-            font="Calibri", size=22, bold=True,
+            font=FONT_NUM, size=TS.STAT_SM, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
         vline(slide, cx + 1.6, y + 0.1, item_h - 0.2, T.muted_rgb, thickness=0.04)
 
         txt(slide, item, cx + 1.8, y + 0.1, cw - 2.2, item_h - 0.2,
-            font=_FONT, size=12, bold=False,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     return slide
@@ -405,7 +406,7 @@ def make_methodology(prs, req: PresentationRequest, T: Theme):
         # التسمية
         rect(slide, cx, y, 5.0, row_h, T.bg2_rgb if i % 2 != 0 else T.card_rgb)
         txt(slide, lbl, cx, y, 4.8, row_h,
-            font=_FONT, size=12, bold=True,
+            font=FONT_TITLE, size=TS.H3, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
         # فاصل
@@ -413,7 +414,7 @@ def make_methodology(prs, req: PresentationRequest, T: Theme):
 
         # القيمة
         txt(slide, val, cx + 5.3, y + 0.1, cw - 5.7, row_h - 0.2,
-            font=_FONT, size=12, bold=False,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     return slide
@@ -457,7 +458,7 @@ def make_stats(prs, req: PresentationRequest, T: Theme):
         # القيمة الرئيسية
         val_size = 34 if len(stat.value) <= 5 else 24 if len(stat.value) <= 9 else 18
         txt(slide, stat.value, x + 0.2, y + 0.3, card_w - 0.5, card_h * 0.52,
-            font="Calibri", size=val_size, bold=True,
+            font=FONT_NUM, size=val_size, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
         # خط فاصل
@@ -466,11 +467,11 @@ def make_stats(prs, req: PresentationRequest, T: Theme):
 
         if stat.unit:
             txt(slide, stat.unit, x + 0.2, y + card_h * 0.58, card_w - 0.5, 0.5,
-                font=_FONT, size=10, bold=False,
+                font=FONT_BODY, size=TS.LABEL, bold=False,
                 color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
         txt(slide, stat.label, x + 0.2, y + card_h - 0.9, card_w - 0.5, 0.75,
-            font=_FONT, size=11, bold=False,
+            font=FONT_BODY, size=TS.BODY, bold=False,
             color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
     return slide
@@ -498,13 +499,13 @@ def make_results(prs, req: PresentationRequest, T: Theme):
 
         # رقم
         txt(slide, str(i + 1), cx, y, 0.9, item_h,
-            font="Calibri", size=14, bold=True,
+            font=FONT_NUM, size=TS.H3, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
         vline(slide, cx + 1.0, y + 0.08, item_h - 0.16, T.muted_rgb, thickness=0.04)
 
         txt(slide, result, cx + 1.1, y + 0.08, cw - 1.5, item_h - 0.16,
-            font=_FONT, size=12, bold=False,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     return slide
@@ -526,14 +527,14 @@ def make_conclusion(prs, req: PresentationRequest, T: Theme):
 
     # عنوان فرعي
     txt(slide, "الاستنتاج العام", cx, cy + 0.2, cw - 0.3, 0.7,
-        font=_FONT, size=13, bold=True,
+        font=FONT_TITLE, size=TS.H3, bold=True,
         color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     hline(slide, cx, cy + 0.95, cw - 0.3, T.accent_rgb, thickness=0.06)
 
     txt(slide, req.general_conclusion,
         cx, cy + 1.1, cw - 0.3, avail_h - 1.3,
-        font=_FONT, size=13, bold=False,
+        font=FONT_BODY, size=TS.BODY_LG, bold=False,
         color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     return slide
@@ -562,7 +563,7 @@ def make_recommendations(prs, req: PresentationRequest, T: Theme):
              0.38, 0.38, T.accent_rgb)
 
         txt(slide, rec, cx + 0.8, y + 0.08, cw - 1.2, item_h - 0.16,
-            font=_FONT, size=12, bold=False,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     return slide
@@ -588,12 +589,12 @@ def make_future(prs, req: PresentationRequest, T: Theme):
 
         # رقم + فاصل
         txt(slide, str(i + 1), cx, y, 0.9, item_h,
-            font="Calibri", size=16, bold=True,
+            font=FONT_NUM, size=TS.H1, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
         vline(slide, cx + 1.0, y + 0.1, item_h - 0.2, T.muted_rgb, thickness=0.04)
 
         txt(slide, item, cx + 1.2, y + 0.1, cw - 1.6, item_h - 0.2,
-            font=_FONT, size=12, bold=False,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     return slide
@@ -621,13 +622,13 @@ def make_references(prs, req: PresentationRequest, T: Theme):
         vline(slide, W - MARGIN_X - 0.1, y, item_h, T.accent_rgb, thickness=0.1)
 
         txt(slide, f"[{i + 1}]", cx, y, 1.0, item_h,
-            font="Calibri", size=9, bold=True,
+            font=FONT_NUM, size=TS.LABEL, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
         vline(slide, cx + 1.1, y + 0.05, item_h - 0.1, T.muted_rgb, thickness=0.03)
 
         txt(slide, ref, cx + 1.2, y + 0.05, cw - 1.5, item_h - 0.1,
-            font=_FONT, size=10, bold=False,
+            font=FONT_BODY, size=TS.LABEL, bold=False,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     return slide
@@ -650,7 +651,7 @@ def make_final(prs, req: PresentationRequest, T: Theme):
     # شكر وتقدير
     txt(slide, "شكراً وتقديراً",
         2.0, H * 0.22, W - 4.0, 2.5,
-        font=_FONT, size=34, bold=True,
+        font=FONT_TITLE, size=TS.H1, bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
     # خط مزدوج
@@ -660,14 +661,14 @@ def make_final(prs, req: PresentationRequest, T: Theme):
     # اسم الطالب
     txt(slide, req.student_name,
         2.0, H * 0.5, W - 4.0, 1.3,
-        font=_FONT, size=20, bold=True,
+        font=FONT_TITLE, size=TS.H1, bold=True,
         color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
     # عنوان المذكرة
     title_short = req.title_ar[:70] + ("..." if len(req.title_ar) > 70 else "")
     txt(slide, title_short,
         2.5, H * 0.62, W - 5.0, 1.8,
-        font=_FONT, size=12, bold=False, italic=True,
+        font=FONT_BODY, size=TS.BODY_LG, bold=False, italic=True,
         color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
     # المؤسسة والسنة
@@ -677,7 +678,7 @@ def make_final(prs, req: PresentationRequest, T: Theme):
     if footer:
         txt(slide, " · ".join(footer),
             2.0, H * 0.8, W - 4.0, 0.8,
-            font=_FONT, size=11, bold=False,
+            font=FONT_BODY, size=TS.BODY, bold=False,
             color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
     return slide

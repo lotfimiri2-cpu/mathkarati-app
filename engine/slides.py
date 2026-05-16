@@ -1,6 +1,8 @@
 """
 Canva Engine — مذكرتي Pro v17.2
 تخطيط Canva: بطاقات عائمة، تدرجات متعددة، زخارف هندسية
+
+v17.2: Typography System — هرمية الخطوط المتسقة
 """
 from __future__ import annotations
 from pptx import Presentation
@@ -15,6 +17,7 @@ from engine.primitives import (
     slide_number,
     txt, blank_slide,
 )
+from engine.typography import TS, FONT_TITLE, FONT_BODY, FONT_NUM, FONT_EN, display_size, stat_size
 from core.themes import Theme
 from core.models import PresentationRequest
 
@@ -66,10 +69,10 @@ def _header_wave(slide, T, title, subtitle=""):
     if acc: multi_stop_gradient(acc, [(0,T.bg),(40,T.accent),(60,T.accent2),(100,T.bg)], 0)
     oval(slide, W-4.5, -2.0, 6.5, 6.5, T.accent_rgb, alpha=10)
     oval(slide, -2, -1.5, 5, 5, T.bg2_rgb, alpha=60)
-    txt(slide, title, 0.8, 0.3, W-1.6, 1.6, font=_FONT, size=23, bold=True,
+    txt(slide, title, 0.8, 0.3, W-1.6, 1.6, font=FONT_TITLE, size=TS.H1, bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
     if subtitle:
-        txt(slide, subtitle, 0.8, 1.95, W-1.6, 1.0, font=_FONT, size=12,
+        txt(slide, subtitle, 0.8, 1.95, W-1.6, 1.0, font=FONT_BODY, size=TS.BODY_LG,
             bold=False, italic=True, color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
 def _header_bar(slide, T, title, subtitle=""):
@@ -79,10 +82,10 @@ def _header_bar(slide, T, title, subtitle=""):
     acc_h = rect(slide, 0, 3.0-0.1, W, 0.1, T.accent_rgb)
     if acc_h: gradient_fill(acc_h, T.accent_grad1, T.accent_grad2, 0)
     oval(slide, W-5, -1.8, 6, 6, T.accent_rgb, alpha=8)
-    txt(slide, title, 0.8, 0.35, W-1.6, 1.55, font=_FONT, size=22, bold=True,
+    txt(slide, title, 0.8, 0.35, W-1.6, 1.55, font=FONT_TITLE, size=TS.H1, bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
     if subtitle:
-        txt(slide, subtitle, 0.8, 1.98, W-1.6, 0.85, font=_FONT, size=12,
+        txt(slide, subtitle, 0.8, 1.98, W-1.6, 0.85, font=FONT_BODY, size=TS.BODY_LG,
             bold=False, color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
 def _section_header(slide, T, title, subtitle="", style=0):
@@ -106,7 +109,7 @@ def make_cover(prs, req: PresentationRequest, T: Theme):
     if req.institution:
         ib = rrect(slide, W/2-9, 0.65, 18, 0.75, T.card_rgb, radius_pct=40)
         if ib: set_solid_alpha(ib, 85)
-        txt(slide, req.institution, W/2-9, 0.65, 18, 0.75, font=_FONT, size=11,
+        txt(slide, req.institution, W/2-9, 0.65, 18, 0.75, font=FONT_BODY, size=TS.COVER_INST,
             bold=False, color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
     cy = H*0.2; cw = W-4.0; cx = 2.0; ch = H*0.42
@@ -121,12 +124,12 @@ def make_cover(prs, req: PresentationRequest, T: Theme):
 
     ts = 26 if len(req.title_ar)<45 else 21 if len(req.title_ar)<75 else 17
     txt(slide, req.title_ar, cx+0.5, cy+0.55, cw-1.0, ch*0.62,
-        font=_FONT, size=ts, bold=True, color=T.text_light_rgb,
+        font=FONT_TITLE, size=ts, bold=True, color=T.text_light_rgb,
         align=PP_ALIGN.CENTER, rtl=True)
 
     if req.title_en:
         txt(slide, req.title_en, cx+0.5, cy+ch*0.66, cw-1.0, 0.85,
-            font="Calibri", size=11, bold=False, italic=True,
+            font=FONT_EN, size=TS.BODY_SM, bold=False, italic=True,
             color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
     div_y = cy+ch*0.76
@@ -138,10 +141,10 @@ def make_cover(prs, req: PresentationRequest, T: Theme):
     def _row(label, value, y):
         rb = rrect(slide, cx+0.4, y, cw-0.8, rh, T.bg_rgb, radius_pct=8)
         if rb: set_solid_alpha(rb, 60)
-        txt(slide, label, cx+0.6, y, 4.5, rh, font=_FONT, size=10.5, bold=True,
+        txt(slide, label, cx+0.6, y, 4.5, rh, font=FONT_TITLE, size=TS.COVER_LABEL, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
         vline(slide, cx+5.3, y+0.08, rh-0.16, T.muted_rgb, thickness=0.04)
-        txt(slide, value, cx+5.5, y, cw-6.3, rh, font=_FONT, size=11.5,
+        txt(slide, value, cx+5.5, y, cw-6.3, rh, font=FONT_BODY, size=TS.COVER_VALUE,
             bold=False, color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     r = 0
@@ -156,7 +159,7 @@ def make_cover(prs, req: PresentationRequest, T: Theme):
             multi_stop_gradient(yb, [(0,T.accent),(100,T.accent2)], 0)
             shadow(yb, blur=12, dist=3, alpha=0.35)
             glow(yb, T.accent.lstrip('#'), radius=15, alpha=0.25)
-        txt(slide, req.year, W/2-2.5, H-1.55, 5.0, 0.6, font="Calibri", size=13,
+        txt(slide, req.year, W/2-2.5, H-1.55, 5.0, 0.6, font=FONT_NUM, size=TS.COVER_YEAR,
             bold=True, color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False)
     return slide
 
@@ -190,11 +193,11 @@ def make_intro(prs, req: PresentationRequest, T: Theme):
                     T.accent_grad1, T.accent_grad2, icon, icon_size=22, T=T)
 
         txt(slide, lbl, x+0.3, cy+2.65, col_w-0.6, 0.75,
-            font=_FONT, size=14, bold=True, color=T.accent_rgb,
+            font=FONT_TITLE, size=TS.H2, bold=True, color=T.accent_rgb,
             align=PP_ALIGN.CENTER, rtl=True)
         hline(slide, x+col_w*0.15, cy+3.45, col_w*0.7, T.accent_rgb, thickness=0.04)
         txt(slide, val, x+0.3, cy+3.6, col_w-0.6, avail_h-4.0,
-            font=_FONT, size=11.5, bold=False, color=T.text_light_rgb,
+            font=FONT_BODY, size=TS.BODY, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.RIGHT, rtl=True)
 
     slide_number(slide, 1, 13, T)
@@ -229,17 +232,17 @@ def make_plan(prs, req: PresentationRequest, T: Theme):
         if nc:
             multi_stop_gradient(nc, [(0,T.accent),(100,T.accent2)], 135)
             shadow(nc, blur=8, dist=2, alpha=0.3)
-        txt(slide, str(i+1), W-3.2, num_y, 0.75, 0.75, font="Calibri", size=12,
+        txt(slide, str(i+1), W-3.2, num_y, 0.75, 0.75, font=FONT_NUM, size=TS.H3,
             bold=True, color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
-        txt(slide, ch.title, 1.6, y, W-5.3, row_h, font=_FONT, size=13.5,
+        txt(slide, ch.title, 1.6, y, W-5.3, row_h, font=FONT_BODY, size=TS.H3,
             bold=False, color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
         if ch.pages:
             pg = rrect(slide, 1.5, y+(row_h-0.42)/2, 1.8, 0.42, T.bg_rgb, radius_pct=40)
             if pg: set_solid_alpha(pg, 60)
             txt(slide, ch.pages, 1.5, y+(row_h-0.42)/2, 1.8, 0.42,
-                font="Calibri", size=9, bold=False, color=T.muted_rgb,
+                font=FONT_NUM, size=TS.LABEL, bold=False, color=T.muted_rgb,
                 align=PP_ALIGN.CENTER, rtl=False)
 
     slide_number(slide, 2, 13, T)
@@ -263,12 +266,12 @@ def make_problem(prs, req: PresentationRequest, T: Theme):
             glow(pc, T.accent.lstrip('#'), radius=25, alpha=0.12)
         lb = rrect(slide, W-7.0, cy, 5.5, 0.55, T.accent_rgb, radius_pct=0)
         if lb: multi_stop_gradient(lb, [(0,T.accent),(100,T.accent2)], 0)
-        txt(slide, "◆ الإشكالية الرئيسية", W-7.0, cy, 5.5, 0.55, font=_FONT,
-            size=11, bold=True, color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=True)
-        txt(slide, "❝", 1.6, cy+0.65, 1.5, 1.2, font="Calibri", size=34,
+        txt(slide, "◆ الإشكالية الرئيسية", W-7.0, cy, 5.5, 0.55, font=FONT_TITLE,
+            size=TS.H2, bold=True, color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=True)
+        txt(slide, "❝", 1.6, cy+0.65, 1.5, 1.2, font=FONT_EN, size=34,
             bold=False, color=T.accent_rgb, align=PP_ALIGN.LEFT, rtl=False)
         txt(slide, req.main_problem, 3.2, cy+0.65, W-5.0, ph-0.85,
-            font=_FONT, size=12.5, bold=False, color=T.text_light_rgb,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.RIGHT, rtl=True)
         cy += ph+0.25
 
@@ -279,8 +282,8 @@ def make_problem(prs, req: PresentationRequest, T: Theme):
         vline(slide, W-1.55, cy, qh, T.accent_rgb, thickness=0.25)
         dot = oval(slide, W-3.5, cy+qh/2-0.22, 0.44, 0.44, T.accent_rgb)
         if dot: multi_stop_gradient(dot, [(0,T.accent),(100,T.accent2)], 135)
-        txt(slide, req.main_question, 1.6, cy, W-4.0, qh, font=_FONT,
-            size=12.5, bold=True, italic=True, color=T.text_light_rgb,
+        txt(slide, req.main_question, 1.6, cy, W-4.0, qh, font=FONT_BODY,
+            size=TS.BODY_LG, bold=True, italic=True, color=T.text_light_rgb,
             align=PP_ALIGN.RIGHT, rtl=True)
         cy += qh+0.2
 
@@ -292,9 +295,9 @@ def make_problem(prs, req: PresentationRequest, T: Theme):
             nc = oval(slide, W-2.8, y+(sub_h-0.38)/2, 0.38, 0.38, T.accent_rgb)
             if nc: set_solid_alpha(nc, 70)
             txt(slide, str(i+1), W-2.8, y+(sub_h-0.38)/2, 0.38, 0.38,
-                font="Calibri", size=8, bold=True, color=T.accent_rgb,
+                font=FONT_NUM, size=TS.LABEL, bold=True, color=T.accent_rgb,
                 align=PP_ALIGN.CENTER, rtl=False)
-            txt(slide, q, 1.6, y, W-3.6, sub_h, font=_FONT, size=11,
+            txt(slide, q, 1.6, y, W-3.6, sub_h, font=FONT_BODY, size=TS.BODY,
                 bold=False, color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     slide_number(slide, 3, 13, T)
@@ -325,7 +328,7 @@ def make_objectives(prs, req: PresentationRequest, T: Theme):
             shadow(c, blur=18, dist=5, alpha=0.4)
         hdr = rrect(slide, x, cy, col_w, 0.75, T.accent_rgb, radius_pct=0)
         if hdr: multi_stop_gradient(hdr, [(0,T.accent2),(100,T.accent)], 0)
-        txt(slide, lbl, x+0.2, cy, col_w-0.4, 0.75, font=_FONT, size=14,
+        txt(slide, lbl, x+0.2, cy, col_w-0.4, 0.75, font=FONT_TITLE, size=TS.H2,
             bold=True, color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
         item_avail = avail_h-0.9
@@ -339,7 +342,7 @@ def make_objectives(prs, req: PresentationRequest, T: Theme):
             if rb: set_solid_alpha(rb, 80)
             number_badge(slide, x+col_w-0.85, iy+(item_h-0.55)/2, 0.55, j+1, T)
             txt(slide, item, x+0.28, iy+0.06, col_w-1.35, item_h-0.12,
-                font=_FONT, size=10.5, bold=False, color=T.text_light_rgb,
+                font=FONT_BODY, size=TS.BODY_SM, bold=False, color=T.text_light_rgb,
                 align=PP_ALIGN.RIGHT, rtl=True)
 
     slide_number(slide, 4, 13, T)
@@ -378,7 +381,7 @@ def make_importance(prs, req: PresentationRequest, T: Theme):
                     icons[i%len(icons)], icon_size=18, T=T)
 
         txt(slide, item, x+1.75, y+0.15, col_w-2.35, card_h-0.3,
-            font=_FONT, size=11.5, bold=False, color=T.text_light_rgb,
+            font=FONT_BODY, size=TS.BODY, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.RIGHT, rtl=True)
 
     slide_number(slide, 5, 13, T)
@@ -423,14 +426,14 @@ def make_methodology(prs, req: PresentationRequest, T: Theme):
             shadow(ic, blur=12, dist=3, alpha=0.35)
             glow(ic, T.accent.lstrip('#'), radius=18, alpha=0.2)
         txt(slide, icons_map.get(lbl,"📌"), ic_x, y+0.45, 2.2, 1.9,
-            font="Calibri", size=24, bold=False, color=T.text_dark_rgb,
+            font=FONT_NUM, size=TS.STAT_SM, bold=False, color=T.text_dark_rgb,
             align=PP_ALIGN.CENTER, rtl=False)
 
-        txt(slide, lbl, x+0.25, y+2.68, col_w-0.5, 0.72, font=_FONT,
-            size=13, bold=True, color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=True)
+        txt(slide, lbl, x+0.25, y+2.68, col_w-0.5, 0.72, font=FONT_TITLE,
+            size=TS.H3, bold=True, color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=True)
         hline(slide, x+col_w*0.15, y+3.45, col_w*0.7, T.muted_rgb, thickness=0.04)
         txt(slide, val, x+0.25, y+3.58, col_w-0.5, card_h-3.75,
-            font=_FONT, size=11, bold=False, color=T.text_light_rgb,
+            font=FONT_BODY, size=TS.BODY, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.CENTER, rtl=True)
 
     slide_number(slide, 6, 13, T)
@@ -475,7 +478,7 @@ def make_stats(prs, req: PresentationRequest, T: Theme):
 
         vs = 38 if len(stat.value)<=4 else 28 if len(stat.value)<=8 else 20
         txt(slide, stat.value, x+0.2, y+0.5, col_w-0.4, card_h*0.5,
-            font="Calibri", size=vs, bold=True, color=T.accent_rgb,
+            font=FONT_NUM, size=vs, bold=True, color=T.accent_rgb,
             align=PP_ALIGN.CENTER, rtl=False)
 
         if stat.unit:
@@ -483,12 +486,12 @@ def make_stats(prs, req: PresentationRequest, T: Theme):
                        T.bg_rgb, radius_pct=40)
             if ub: set_solid_alpha(ub, 60)
             txt(slide, stat.unit, x+col_w/2-1.5, y+card_h*0.52+0.15, 3.0, 0.5,
-                font=_FONT, size=10, bold=False, color=T.muted_rgb,
+                font=FONT_BODY, size=TS.LABEL, bold=False, color=T.muted_rgb,
                 align=PP_ALIGN.CENTER, rtl=True)
 
         hline(slide, x+col_w*0.15, y+card_h*0.68, col_w*0.7, T.muted_rgb, thickness=0.04)
         txt(slide, stat.label, x+0.2, y+card_h*0.7, col_w-0.4, card_h*0.27,
-            font=_FONT, size=11, bold=False, color=T.text_light_rgb,
+            font=FONT_BODY, size=TS.BODY, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.CENTER, rtl=True)
 
     slide_number(slide, 7, 13, T)
@@ -525,7 +528,7 @@ def make_results(prs, req: PresentationRequest, T: Theme):
         number_badge(slide, W-3.1, y+(item_h-0.6)/2, 0.6, i+1, T)
 
         txt(slide, result, 1.55, y+0.1, W-5.1, item_h-0.2,
-            font=_FONT, size=12, bold=False, color=T.text_light_rgb,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.RIGHT, rtl=True)
 
     slide_number(slide, 8, 13, T)
@@ -554,17 +557,17 @@ def make_conclusion(prs, req: PresentationRequest, T: Theme):
     diamond(slide, 1.8, card_y+0.55, 1.2, 1.2, T.accent_rgb, alpha=15)
     diamond(slide, W-3.2, card_y+card_h-1.8, 1.0, 1.0, T.accent_rgb, alpha=10)
 
-    txt(slide, "❝", 2.2, card_y+0.5, 2.0, 1.8, font="Calibri", size=52,
+    txt(slide, "❝", 2.2, card_y+0.5, 2.0, 1.8, font=FONT_EN, size=52,
         bold=False, color=T.accent_rgb, align=PP_ALIGN.LEFT, rtl=False)
     txt(slide, req.general_conclusion, 2.2, card_y+1.4, cw-1.4, card_h-2.2,
-        font=_FONT, size=14.5, bold=False, color=T.text_light_rgb,
+        font=FONT_BODY, size=TS.H2, bold=False, color=T.text_light_rgb,
         align=PP_ALIGN.RIGHT, rtl=True)
 
     div_y = card_y+card_h-1.2
     hl = rect(slide, 1.5+cw*0.2, div_y, cw*0.6, 0.06, T.accent_rgb)
     if hl: multi_stop_gradient(hl, [(0,T.bg2),(50,T.accent),(100,T.bg2)], 0)
     txt(slide, req.student_name, 1.5, div_y+0.15, cw, 0.78,
-        font=_FONT, size=14, bold=True, color=T.accent_rgb,
+        font=FONT_TITLE, size=TS.H2, bold=True, color=T.accent_rgb,
         align=PP_ALIGN.CENTER, rtl=True)
 
     slide_number(slide, 9, 13, T)
@@ -599,7 +602,7 @@ def make_recommendations(prs, req: PresentationRequest, T: Theme):
         if acc: gradient_fill(acc, T.accent_grad1, T.accent_grad2, 90)
 
         txt(slide, rec, 1.55, y+0.1, W-3.5, item_h-0.2,
-            font=_FONT, size=11.5, bold=False, color=T.text_light_rgb,
+            font=FONT_BODY, size=TS.BODY, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.RIGHT, rtl=True)
 
     slide_number(slide, 10, 13, T)
@@ -637,7 +640,7 @@ def make_future(prs, req: PresentationRequest, T: Theme):
         number_badge(slide, x+col_w/2-0.45, y+0.45, 0.9, i+1, T)
         hline(slide, x+col_w*0.2, y+1.5, col_w*0.6, T.muted_rgb, thickness=0.04)
         txt(slide, item, x+0.3, y+1.65, col_w-0.6, card_h-1.85,
-            font=_FONT, size=12, bold=False, color=T.text_light_rgb,
+            font=FONT_BODY, size=TS.BODY_LG, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.CENTER, rtl=True)
 
     slide_number(slide, 11, 13, T)
@@ -672,10 +675,10 @@ def make_references(prs, req: PresentationRequest, T: Theme):
         nb = rrect(slide, 1.45, y+(item_h-0.42)/2, 0.72, 0.42, T.bg_rgb, radius_pct=40)
         if nb: set_solid_alpha(nb, 70)
         txt(slide, f"[{i+1}]", 1.45, y+(item_h-0.42)/2, 0.72, 0.42,
-            font="Calibri", size=9, bold=True, color=T.accent_rgb,
+            font=FONT_NUM, size=TS.LABEL, bold=True, color=T.accent_rgb,
             align=PP_ALIGN.CENTER, rtl=False)
         txt(slide, ref, 2.35, y+0.05, W-4.2, item_h-0.1,
-            font=_FONT, size=10.5, bold=False, color=T.text_light_rgb,
+            font=FONT_BODY, size=TS.BODY_SM, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.RIGHT, rtl=True)
 
     slide_number(slide, 12, 13, T)
@@ -716,11 +719,11 @@ def make_final(prs, req: PresentationRequest, T: Theme):
     bp = rrect(slide, cx, cy2+ch-0.3, cw, 0.3, T.accent_rgb, radius_pct=0)
     if bp: set_solid_alpha(bp, 50)
 
-    txt(slide, "✦", cx+cw/2-0.8, cy2+0.55, 1.6, 1.5, font="Calibri",
+    txt(slide, "✦", cx+cw/2-0.8, cy2+0.55, 1.6, 1.5, font=FONT_EN,
         size=28, bold=False, color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
     txt(slide, "شكراً وتقديراً", cx+0.8, cy2+1.2, cw-1.6, 2.8,
-        font=_FONT, size=38, bold=True, color=T.text_light_rgb,
+        font=FONT_TITLE, size=TS.DISPLAY_MD, bold=True, color=T.text_light_rgb,
         align=PP_ALIGN.CENTER, rtl=True)
 
     div_y = cy2+4.2
@@ -729,12 +732,12 @@ def make_final(prs, req: PresentationRequest, T: Theme):
     rect(slide, cx+cw*0.25, div_y+0.13, cw*0.5, 0.03, T.muted_rgb)
 
     txt(slide, req.student_name, cx+0.8, div_y+0.3, cw-1.6, 1.4,
-        font=_FONT, size=22, bold=True, color=T.accent_rgb,
+        font=FONT_TITLE, size=TS.H1, bold=True, color=T.accent_rgb,
         align=PP_ALIGN.CENTER, rtl=True)
 
     ts = req.title_ar[:72]+("..." if len(req.title_ar)>72 else "")
     txt(slide, ts, cx+1.2, div_y+1.85, cw-2.4, 2.0,
-        font=_FONT, size=12, bold=False, italic=True, color=T.muted_rgb,
+        font=FONT_BODY, size=TS.BODY, bold=False, italic=True, color=T.muted_rgb,
         align=PP_ALIGN.CENTER, rtl=True)
 
     footer = []
@@ -744,7 +747,7 @@ def make_final(prs, req: PresentationRequest, T: Theme):
         fb = rrect(slide, cx+cw*0.1, cy2+ch-1.35, cw*0.8, 0.62, T.bg_rgb, radius_pct=40)
         if fb: set_solid_alpha(fb, 55)
         txt(slide, "  ·  ".join(footer), cx+0.8, cy2+ch-1.35, cw-1.6, 0.62,
-            font=_FONT, size=11, bold=False, color=T.muted_rgb,
+            font=FONT_BODY, size=TS.BODY, bold=False, color=T.muted_rgb,
             align=PP_ALIGN.CENTER, rtl=True)
 
     bottom = rect(slide, 0, H-0.28, W, 0.28, T.accent_rgb)
