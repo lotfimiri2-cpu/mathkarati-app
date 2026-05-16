@@ -17,7 +17,7 @@ from engine.primitives import (
     slide_number,
     txt, blank_slide,
 )
-from engine.typography import TS, FONT_TITLE, FONT_BODY, FONT_NUM, FONT_EN, display_size, stat_size
+from engine.typography import TS, FONT_TITLE, FONT_BODY, FONT_NUM, FONT_EN, display_size, stat_size, h1_size, LineSpacing
 from core.themes import Theme
 from core.models import PresentationRequest
 
@@ -122,7 +122,7 @@ def make_cover(prs, req: PresentationRequest, T: Theme):
     if ct: multi_stop_gradient(ct, [(0,T.accent),(50,T.accent2),(100,T.accent)], 0)
     vline(slide, cx+cw-0.25, cy+0.38, ch-0.38, T.accent_rgb, thickness=0.25)
 
-    ts = 26 if len(req.title_ar)<45 else 21 if len(req.title_ar)<75 else 17
+    ts = display_size(req.title_ar)
     txt(slide, req.title_ar, cx+0.5, cy+0.55, cw-1.0, ch*0.62,
         font=FONT_TITLE, size=ts, bold=True, color=T.text_light_rgb,
         align=PP_ALIGN.CENTER, rtl=True)
@@ -235,8 +235,8 @@ def make_plan(prs, req: PresentationRequest, T: Theme):
         txt(slide, str(i+1), W-3.2, num_y, 0.75, 0.75, font=FONT_NUM, size=TS.H3,
             bold=True, color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
-        txt(slide, ch.title, 1.6, y, W-5.3, row_h, font=FONT_BODY, size=TS.H3,
-            bold=False, color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        txt(slide, ch.title, 1.6, y, W-5.3, row_h, font=FONT_TITLE, size=TS.H3,
+            bold=True, color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
         if ch.pages:
             pg = rrect(slide, 1.5, y+(row_h-0.42)/2, 1.8, 0.42, T.bg_rgb, radius_pct=40)

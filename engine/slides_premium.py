@@ -12,7 +12,7 @@ from engine.primitives import (
     W, H, rect, rrect, oval, bg, hline, vline,
     gradient_fill, gradient_rect, shadow, set_solid_alpha, txt, blank_slide,
 )
-from engine.typography import TS, FONT_TITLE, FONT_BODY, FONT_NUM, FONT_EN, display_size, stat_size
+from engine.typography import TS, FONT_TITLE, FONT_BODY, FONT_NUM, FONT_EN, display_size, stat_size, h1_size, LineSpacing
 from core.themes import Theme
 from core.models import PresentationRequest
 
@@ -245,7 +245,7 @@ def make_plan(prs, req: PresentationRequest, T: Theme):
             color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
         txt(slide, ch.title, cx + 1.4, y, cw - 2.0, row_h,
-            font=FONT_BODY, size=TS.H3, bold=False,
+            font=FONT_TITLE, size=TS.H3, bold=True,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
         if ch.pages:

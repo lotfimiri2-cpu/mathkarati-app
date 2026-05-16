@@ -10,7 +10,7 @@ from engine.primitives import (
     W, H, rect, rrect, oval, bg, hline, vline,
     gradient_fill, gradient_rect, shadow, set_solid_alpha, txt, blank_slide,
 )
-from engine.typography import TS, FONT_TITLE, FONT_BODY, FONT_NUM, FONT_EN, display_size, stat_size
+from engine.typography import TS, FONT_TITLE, FONT_BODY, FONT_NUM, FONT_EN, display_size, stat_size, h1_size, LineSpacing
 from core.themes import Theme
 from core.models import PresentationRequest
 
@@ -47,7 +47,7 @@ def _header(slide, T: Theme, title: str, page_num: int = 0):
     # عنوان الشريحة
     txt(slide, title,
         MARGIN_X, 0.3, W - MARGIN_X * 2, HEADER_H - 0.5,
-        font=FONT_TITLE, size=TS.H1, bold=True,
+        font=FONT_TITLE, size=h1_size(title), bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     # رقم الصفحة يسار
@@ -105,7 +105,7 @@ def make_cover(prs: Presentation, req: PresentationRequest, T: Theme):
 
     # العنوان الرئيسي — في وسط الشريحة
     title_y = H * 0.28
-    title_size = 26 if len(req.title_ar) < 50 else 20 if len(req.title_ar) < 80 else 16
+    title_size = display_size(req.title_ar)
 
     txt(slide, req.title_ar,
         2.5, title_y, W - 5.0, H * 0.28,
