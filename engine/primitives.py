@@ -448,11 +448,15 @@ def card_3d(slide, x, y, w, h, T, radius=10):
 
 
 def slide_number(slide, num: int, total: int, T):
-    """Slide number indicator bottom-right."""
+    """Slide number — pill badge bottom-left, well separated from content."""
     label = f"{num} / {total}"
-    txt(slide, label, W - 3.5, H - 0.55, 3.2, 0.45,
+    # خلفية بيضاوية شفافة
+    pill = rrect(slide, 0.35, H - 0.50, 1.65, 0.34, T.accent_rgb, radius_pct=50)
+    if pill:
+        set_solid_alpha(pill, 25)
+    txt(slide, label, 0.35, H - 0.52, 1.65, 0.38,
         font="Calibri", size=9, bold=False,
-        color=T.muted_rgb, align=PP_ALIGN.LEFT, rtl=False)
+        color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
 
 def watermark(slide, text: str, T):

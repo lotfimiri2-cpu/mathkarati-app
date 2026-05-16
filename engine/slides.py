@@ -69,10 +69,11 @@ def _header_wave(slide, T, title, subtitle=""):
     if acc: multi_stop_gradient(acc, [(0,T.bg),(40,T.accent),(60,T.accent2),(100,T.bg)], 0)
     oval(slide, W-4.5, -2.0, 6.5, 6.5, T.accent_rgb, alpha=10)
     oval(slide, -2, -1.5, 5, 5, T.bg2_rgb, alpha=60)
-    txt(slide, title, 0.8, 0.3, W-1.6, 1.6, font=FONT_TITLE, size=TS.H1, bold=True,
+    # العنوان: هامش أيسر 1.0 inch ليبقى بعيداً عن حافة الشريحة
+    txt(slide, title, 1.0, 0.28, W-2.0, 1.55, font=FONT_TITLE, size=h1_size(title), bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
     if subtitle:
-        txt(slide, subtitle, 0.8, 1.95, W-1.6, 1.0, font=FONT_BODY, size=TS.BODY_LG,
+        txt(slide, subtitle, 1.0, 1.9, W-2.0, 1.1, font=FONT_BODY, size=TS.BODY_LG,
             bold=False, italic=True, color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
 def _header_bar(slide, T, title, subtitle=""):
@@ -82,10 +83,11 @@ def _header_bar(slide, T, title, subtitle=""):
     acc_h = rect(slide, 0, 3.0-0.1, W, 0.1, T.accent_rgb)
     if acc_h: gradient_fill(acc_h, T.accent_grad1, T.accent_grad2, 0)
     oval(slide, W-5, -1.8, 6, 6, T.accent_rgb, alpha=8)
-    txt(slide, title, 0.8, 0.35, W-1.6, 1.55, font=FONT_TITLE, size=TS.H1, bold=True,
+    # العنوان: يبدأ بعد الشريط الجانبي الأيسر (0.5) + فراغ (0.4)
+    txt(slide, title, 1.1, 0.28, W-1.9, 1.55, font=FONT_TITLE, size=h1_size(title), bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
     if subtitle:
-        txt(slide, subtitle, 0.8, 1.98, W-1.6, 0.85, font=FONT_BODY, size=TS.BODY_LG,
+        txt(slide, subtitle, 1.1, 1.9, W-1.9, 0.9, font=FONT_BODY, size=TS.BODY_LG,
             bold=False, color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
 def _section_header(slide, T, title, subtitle="", style=0):

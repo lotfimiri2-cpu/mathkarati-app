@@ -35,37 +35,43 @@ def _hx(h):
 # SIDEBAR LAYOUT: الشريط الجانبي الأيسر ثابت في كل الشرائح
 # ══════════════════════════════════════════════════════════════════════
 def _sidebar(slide, T: Theme, icon: str, section_title: str):
-    """شريط جانبي أيسر بتدرج + أيقونة + عنوان القسم"""
-    # الخلفية الكاملة
+    """شريط جانبي أيسر: تدرج + أيقونة مركزية + عنوان القسم في الأسفل"""
     bg(slide, T.bg_rgb)
 
     # الشريط الجانبي
-    sidebar = gradient_rect(slide, 0, 0, SIDEBAR_W, H, T.grad1, T.grad2, angle=180)
+    gradient_rect(slide, 0, 0, SIDEBAR_W, H, T.grad1, T.grad2, angle=180)
 
-    # خط فاصل بين الشريط والمحتوى
-    sep = rect(slide, SIDEBAR_W, 0, 0.06, H, T.accent_rgb)
+    # خط فاصل accent بين الشريط والمحتوى
+    sep = rect(slide, SIDEBAR_W, 0, 0.07, H, T.accent_rgb)
 
-    # دائرة أيقونة في المنتصف الجانبي
-    icon_x = SIDEBAR_W / 2 - 1.8
-    icon_y = H / 2 - 2.2
-    icon_circle = oval(slide, icon_x, icon_y, 3.6, 3.6, T.accent_rgb, alpha=15)
+    # ── أيقونة في الجزء العلوي-المتوسط من الشريط ──────────────────
+    ICON_DIAM = 3.2
+    icon_x = (SIDEBAR_W - ICON_DIAM) / 2
+    icon_y = H * 0.18
+    ic = oval(slide, icon_x, icon_y, ICON_DIAM, ICON_DIAM, T.accent_rgb, alpha=18)
     txt(slide, icon,
-        icon_x, icon_y + 0.6, 3.6, 2.4,
+        icon_x, icon_y + 0.45, ICON_DIAM, ICON_DIAM - 0.9,
         font=FONT_EN, size=TS.SIDEBAR_ICON, bold=False,
         color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
-    # عنوان القسم (عمودي في الشريط) — H2 size واضح ومميز
+    # ── فاصل رفيع بين الأيقونة وعنوان القسم ───────────────────────
+    sep_y = icon_y + ICON_DIAM + 0.35
+    hline(slide, 0.5, sep_y, SIDEBAR_W - 1.0, T.accent_rgb, thickness=0.04)
+
+    # ── عنوان القسم — كتابة واضحة وسط-أسفل الشريط ─────────────────
+    TITLE_Y = sep_y + 0.25
+    TITLE_H = H - TITLE_Y - 0.5
     txt(slide, section_title,
-        0.3, H / 2 + 1.8, SIDEBAR_W - 0.6, 2.5,
+        0.25, TITLE_Y, SIDEBAR_W - 0.5, TITLE_H,
         font=FONT_TITLE, size=TS.SIDEBAR_LABEL, bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
-    # زخارف سفلى وعلوية في الشريط
-    oval(slide, -1.5, -1.5, 5, 5, T.accent_rgb, alpha=6)
-    oval(slide, 1, H - 4, 4, 4, T.bg2_rgb, alpha=40)
+    # ── زخارف خفيفة ────────────────────────────────────────────────
+    oval(slide, -1.5, -1.5, 4.5, 4.5, T.accent_rgb, alpha=5)
+    oval(slide, 0.5, H - 3.5, 3.5, 3.5, T.bg_rgb, alpha=35)
 
-    # خلفية منطقة المحتوى
-    rect(slide, SIDEBAR_W + 0.06, 0, W - SIDEBAR_W - 0.06, H, T.bg2_rgb)
+    # ── خلفية منطقة المحتوى ────────────────────────────────────────
+    rect(slide, SIDEBAR_W + 0.07, 0, W - SIDEBAR_W - 0.07, H, T.bg2_rgb)
 
 
 def _content_area_x():
@@ -707,7 +713,7 @@ def make_final(prs, req: PresentationRequest, T: Theme):
 
     txt(slide, "شكراً وتقديراً",
         cx + 0.5, center_y + 0.5, cw - 1.0, 2.5,
-        font=FONT_TITLE, size=TS.H1, bold=True,
+        font=FONT_TITLE, size=TS.DISPLAY_SM, bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
     hline(slide, cx + cw * 0.15, center_y + 3.1, cw * 0.7, T.accent_rgb, thickness=0.05)

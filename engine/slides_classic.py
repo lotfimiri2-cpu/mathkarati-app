@@ -30,7 +30,7 @@ def set_font(font_name: str):
 # HEADER — شريط علوي بسيط في كل الشرائح
 # ══════════════════════════════════════════════════════════════════════
 def _header(slide, T: Theme, title: str, page_num: int = 0):
-    """شريط علوي أكاديمي: خلفية فاتحة + خط accent + عنوان"""
+    """شريط علوي أكاديمي: خلفية فاتحة + خط accent + عنوان + badge رقم"""
     bg(slide, T.bg_rgb)
 
     # خلفية الهيدر
@@ -44,20 +44,33 @@ def _header(slide, T: Theme, title: str, page_num: int = 0):
     # خط رفيع فوق accent
     rect(slide, 0, HEADER_H - 0.22, W, 0.06, T.muted_rgb)
 
-    # عنوان الشريحة
+    # ── رقم الصفحة: badge دائري يسار ──────────────────────────────
+    # badge_x يبدأ من اليسار مع هامش 0.35 inch
+    BADGE_X  = 0.35
+    BADGE_W  = 0.72
+    BADGE_H  = 0.72
+    BADGE_Y  = (HEADER_H - BADGE_H) / 2   # محاذاة عمودية مركزية
+
+    if page_num > 0:
+        badge = rrect(slide, BADGE_X, BADGE_Y, BADGE_W, BADGE_H, T.accent_rgb, radius_pct=50)
+        if badge:
+            gradient_fill(badge, T.accent_grad1, T.accent_grad2, 135)
+        txt(slide, str(page_num),
+            BADGE_X, BADGE_Y, BADGE_W, BADGE_H,
+            font=FONT_NUM, size=TS.H2, bold=True,
+            color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False)
+        # فصل بصري بين الـ badge والعنوان
+        vline(slide, BADGE_X + BADGE_W + 0.22, BADGE_Y, BADGE_H, T.muted_rgb, thickness=0.04)
+
+    # ── عنوان الشريحة: يبدأ بعد badge + فاصل ──────────────────────
+    TITLE_X = BADGE_X + BADGE_W + 0.55 if page_num > 0 else MARGIN_X
+    TITLE_W = W - TITLE_X - 0.5
     txt(slide, title,
-        MARGIN_X, 0.3, W - MARGIN_X * 2, HEADER_H - 0.5,
+        TITLE_X, 0.25, TITLE_W, HEADER_H - 0.45,
         font=FONT_TITLE, size=h1_size(title), bold=True,
         color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
-    # رقم الصفحة يسار
-    if page_num > 0:
-        txt(slide, str(page_num),
-            0.3, 0.3, 1.2, HEADER_H - 0.5,
-            font=FONT_NUM, size=TS.STAT_MD, bold=True,
-            color=T.accent_rgb, align=PP_ALIGN.LEFT, rtl=False)
-
-    # شريط سفلي
+    # ── شريط سفلي ──────────────────────────────────────────────────
     footer_bg = rect(slide, 0, H - FOOTER_H, W, FOOTER_H, T.bg2_rgb)
     footer_line = rect(slide, 0, H - FOOTER_H, W, 0.06, T.accent_rgb)
     if footer_line:
@@ -133,13 +146,13 @@ def make_cover(prs: Presentation, req: PresentationRequest, T: Theme):
         vline(slide, W - MARGIN_X - 0.08, y, row_h - 0.06, T.accent_rgb, thickness=0.08)
         # التسمية
         txt(slide, label, MARGIN_X + 0.2, y, 4.5, row_h,
-            font=FONT_TITLE, size=TS.H3, bold=True,
+            font=FONT_TITLE, size=TS.COVER_LABEL, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
         # الفاصل
         vline(slide, W / 2, y + 0.1, row_h - 0.26, T.muted_rgb, thickness=0.04)
         # القيمة
         txt(slide, value, W / 2 + 0.3, y, W / 2 - MARGIN_X - 0.5, row_h,
-            font=FONT_BODY, size=TS.BODY_LG, bold=is_bold,
+            font=FONT_BODY, size=TS.COVER_VALUE, bold=is_bold,
             color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
     info_row("اسم الطالب", req.student_name, info_y, is_bold=True)
