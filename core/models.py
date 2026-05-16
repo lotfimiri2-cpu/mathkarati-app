@@ -1,6 +1,6 @@
 """
-Domain Models — مذكرتي Pro v17.1
-from_dict() maps ALL field names the frontend actually sends.
+Domain Models — مذكرتي Pro v17
+Pure data classes with validation. No I/O, no side effects.
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
@@ -9,6 +9,7 @@ from typing import Optional
 
 @dataclass
 class SlideConfig:
+    """Which slides to include"""
     cover: bool = True
     intro: bool = True
     plan: bool = True
@@ -28,8 +29,7 @@ class SlideConfig:
     def from_dict(cls, d: dict) -> "SlideConfig":
         if not d:
             return cls()
-        fields = cls.__dataclass_fields__
-        return cls(**{k: bool(v) for k, v in d.items() if k in fields})
+        return cls(**{k: bool(v) for k, v in d.items() if k in cls.__dataclass_fields__})
 
 
 @dataclass
@@ -59,11 +59,12 @@ class Chapter:
 
 @dataclass
 class PresentationRequest:
+    """Validated, normalized input from frontend"""
     # Required
     student_name: str
     title_ar: str
 
-    # Metadata
+    # Optional metadata
     title_en: str = ""
     supervisor: str = ""
     co_supervisor: str = ""
@@ -79,23 +80,24 @@ class PresentationRequest:
     intro_approach: str = ""
     main_problem: str = ""
     main_question: str = ""
-    sub_questions: list = field(default_factory=list)
-    objectives: list = field(default_factory=list)
-    hypotheses: list = field(default_factory=list)
-    importance: list = field(default_factory=list)
+    sub_questions: list[str] = field(default_factory=list)
+    objectives: list[str] = field(default_factory=list)
+    hypotheses: list[str] = field(default_factory=list)
+    importance: list[str] = field(default_factory=list)
     reasons: str = ""
     methodology: str = ""
     sample_type: str = ""
     sample_size: str = ""
     tool: str = ""
-    stats: list = field(default_factory=list)
-    main_results: list = field(default_factory=list)
+    stats: list[StatCard] = field(default_factory=list)
+    main_results: list[str] = field(default_factory=list)
     general_conclusion: str = ""
-    recommendations: list = field(default_factory=list)
-    future_work: list = field(default_factory=list)
-    references: list = field(default_factory=list)
-    chapters: list = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
+    future_work: list[str] = field(default_factory=list)
+    references: list[str] = field(default_factory=list)
+    chapters: list[Chapter] = field(default_factory=list)
 
+    # Slide toggles
     slides: SlideConfig = field(default_factory=SlideConfig)
 
     VALID_THEMES = {
@@ -106,66 +108,60 @@ class PresentationRequest:
 
     @classmethod
     def from_dict(cls, raw: dict) -> "PresentationRequest":
-        def s(key, *aliases):
-            """Get string from raw, trying key then aliases."""
-            for k in (key,) + aliases:
-                v = raw.get(k)
-                if v is not None:
-                    return str(v).strip()
-            return ""
+        def lst(k):
+            return [str(x).strip() for x in (raw.get(k) or []) if str(x).strip()]
 
-        def lst(key, *aliases):
-            """Get list from raw, trying key then aliases."""
-            for k in (key,) + aliases:
-                v = raw.get(k)
-                if v is not None and isinstance(v, list):
-                    return [str(x).strip() for x in v if str(x).strip()]
-            return []
-
-        # Theme: check 'theme' field, also peek inside palette radio if needed
-        theme = s("theme")
+        theme = str(raw.get("theme", "navy_gold"))
         if theme not in cls.VALID_THEMES:
             theme = "navy_gold"
 
-        stats = [c for c in (StatCard.from_dict(x) for x in (raw.get("stats") or [])) if c]
+        stats = [s for s in (StatCard.from_dict(x) for x in (raw.get("stats") or [])) if s]
         chapters = [c for c in (Chapter.from_dict(x) for x in (raw.get("chapters") or [])) if c]
         slides = SlideConfig.from_dict(raw.get("slides") or {})
 
+        # institution: join university + faculty + department if present
+        university = str(raw.get("university", "") or raw.get("institution", "")).strip()
+        faculty    = str(raw.get("faculty", "")).strip()
+        department = str(raw.get("department", "")).strip()
+        institution_parts = [p for p in [university, faculty, department] if p]
+        institution = " — ".join(institution_parts) if institution_parts else ""
+
+        # specialization: prefer 'major' (frontend) or 'specialization'
+        specialization = str(raw.get("major", "") or raw.get("specialization", "")).strip()
+
+        # generalConclusion: frontend sends key 'conclusion' (not 'generalConclusion')
+        general_conclusion = str(
+            raw.get("generalConclusion", "") or raw.get("conclusion", "")
+        ).strip()
+
         return cls(
-            # frontend sends: studentName
-            student_name=s("studentName"),
-            # frontend sends: titleAr
-            title_ar=s("titleAr"),
-            # frontend sends: fieldEn or titleEn
-            title_en=s("titleEn", "fieldEn", "titleFr"),
-            supervisor=s("supervisor"),
-            co_supervisor=s("coSupervisor"),
-            # frontend sends: university (not institution)
-            institution=s("institution", "university", "faculty"),
-            year=s("year"),
-            # frontend sends: major or department
-            specialization=s("specialization", "major", "department"),
-            lang=s("lang") or "ar",
-            engine=s("engine") or "canva",
+            student_name=str(raw.get("studentName", "")).strip(),
+            title_ar=str(raw.get("titleAr", "")).strip(),
+            title_en=str(raw.get("titleEn", "") or raw.get("titleFr", "") or raw.get("fieldEn", "")).strip(),
+            supervisor=str(raw.get("supervisor", "")).strip(),
+            co_supervisor=str(raw.get("coSupervisor", "")).strip(),
+            institution=institution,
+            year=str(raw.get("year", "")).strip(),
+            specialization=specialization,
+            lang=str(raw.get("lang", "ar")),
+            engine=str(raw.get("engine", "canva")),
             theme=theme,
-            intro_overview=s("introOverview"),
-            intro_approach=s("introApproach"),
-            main_problem=s("mainProblem"),
-            main_question=s("mainQuestion"),
+            intro_overview=str(raw.get("introOverview", "")).strip(),
+            intro_approach=str(raw.get("introApproach", "")).strip(),
+            main_problem=str(raw.get("mainProblem", "")).strip(),
+            main_question=str(raw.get("mainQuestion", "")).strip(),
             sub_questions=lst("subQuestions"),
             objectives=lst("objectives"),
             hypotheses=lst("hypotheses"),
             importance=lst("importance"),
-            reasons=s("reasons", "dataSource"),
-            methodology=s("methodology"),
-            sample_type=s("sampleType"),
-            sample_size=s("sampleSize"),
-            tool=s("tool"),
+            reasons=str(raw.get("reasons", "")).strip(),
+            methodology=str(raw.get("methodology", "")).strip(),
+            sample_type=str(raw.get("sampleType", "")).strip(),
+            sample_size=str(raw.get("sampleSize", "")).strip(),
+            tool=str(raw.get("tool", "")).strip(),
             stats=stats,
-            # frontend sends: mainResults
             main_results=lst("mainResults"),
-            # frontend sends: generalConclusion
-            general_conclusion=s("generalConclusion", "conclusion"),
+            general_conclusion=general_conclusion,
             recommendations=lst("recommendations"),
             future_work=lst("futureWork"),
             references=lst("references"),
