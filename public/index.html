@@ -618,70 +618,66 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <p data-i18n="s6_sub">اختر الموديل أولاً، ثم اللون المناسب</p>
   </div>
 
+  <!-- ENGINE SELECTION — 3 engines with distinct visuals -->
   <div class="card">
-    <div class="ch"><div class="ci">📐</div><h3 data-i18n="model_step_a">الخطوة أ — اختر الموديل</h3></div>
+    <div class="ch"><div class="ci">📐</div><h3 data-i18n="model_step_a">اختر نمط العرض</h3></div>
     <div class="mpick" style="grid-template-columns:1fr 1fr 1fr">
 
-      <!-- CANVA — الافتراضي الجديد -->
+      <!-- CANVA — سينمائي عصري -->
       <label class="mopt">
         <input type="radio" name="engine" value="canva" checked onchange="onEngineChange()">
-        <div class="mcard" style="position:relative">
-          <div class="mcheck">✓</div>
-          <div style="position:absolute;top:10px;right:10px;background:#C6A03C;color:#07172F;font-size:9px;font-weight:900;padding:2px 8px;border-radius:99px;z-index:2">✨ جديد</div>
-          <div class="mcard-top" style="background:linear-gradient(135deg,#07172F 0%,#1A3A6E 60%,#C6A03C 100%)">
-            <h4 style="color:#fff;font-size:15px">Canva Level</h4>
-            <p style="color:rgba(255,255,255,.75)">سينمائي · 3 عائلات × 8 ألوان · مستوى Canva Pro</p>
-          </div>
-          <div class="mcard-palettes">
-            <span style="background:#07172F;color:#C6A03C;border-color:#07172F">NOIR ذهبي</span>
-            <span style="background:#061A28;color:#00C9A7;border-color:#061A28">VIVID تيل</span>
-            <span style="background:#3A0018;color:#E84393;border-color:#3A0018">VIVID بورغندي</span>
-            <span style="background:#0F2D1E;color:#86BB56;border-color:#0F2D1E">NOIR غابي</span>
-            <span style="background:#12052E;color:#C07AFF;border-color:#12052E">NOIR بنفسجي</span>
-            <span style="background:#1A1A2E;color:#FF6B35;border-color:#1A1A2E">VIVID برتقالي</span>
-            <span style="background:#0A254A;color:#4AB3FF;border-color:#0A254A">MINIMAL ثلجي</span>
-            <span style="background:#2C1A0E;color:#C8861F;border-color:#2C1A0E">NOIR رملي</span>
-          </div>
-          <div class="mcard-count">⚙️ python-pptx · زوايا دائرية · ظلال · 3 عائلات NOIR/VIVID/MINIMAL</div>
-        </div>
-      </label>
-
-      <!-- PREMIUM — Node.js PptxGenJS -->
-      <label class="mopt">
-        <input type="radio" name="engine" value="premium" onchange="onEngineChange()">
         <div class="mcard">
           <div class="mcheck">✓</div>
-          <div class="mcard-top" style="background:linear-gradient(135deg,#0A0C12,#C9A84C)">
-            <h4 data-i18n="premium_name">Premium v3 ✨</h4>
-            <p data-i18n="premium_desc">تصاميم عالمية · 3 أنماط فاخرة</p>
+          <div class="mcard-top" style="background:linear-gradient(135deg,#07172F 0%,#1A3A6E 60%,#C6A03C 100%)">
+            <div style="position:absolute;top:8px;right:8px;background:#C6A03C;color:#07172F;font-size:9px;font-weight:900;padding:2px 8px;border-radius:99px">✨ الافتراضي</div>
+            <h4 style="color:#fff;margin-top:18px">Canva Level</h4>
+            <p style="color:rgba(255,255,255,.75);font-size:11px">سينمائي · بطاقات مستديرة · ظلال · gradients</p>
           </div>
           <div class="mcard-palettes">
-            <span style="background:#0A0C12;color:#C9A84C;border-color:#0A0C12">Noir Académique</span>
-            <span style="background:#040D1E;color:#00D4FF;border-color:#040D1E">Atlas Corporate</span>
-            <span style="background:#1C0E2B;color:#FF5C5C;border-color:#1C0E2B">Sakura Créative</span>
+            <span style="background:#07172F;color:#C6A03C;border-color:#07172F">أزرق ذهبي</span>
+            <span style="background:#061A28;color:#00D4AA;border-color:#061A28">تيل</span>
+            <span style="background:#12052E;color:#C07AFF;border-color:#12052E">بنفسجي</span>
+            <span style="background:#040D1E;color:#00D4FF;border-color:#040D1E">Atlas</span>
           </div>
-          <div class="mcard-count" data-i18n="premium_engine">⚙️ PptxGenJS · معماريات سينمائية</div>
+          <div class="mcard-count">⚙️ بطاقات دائرية · ظلال · تدرجات لونية</div>
         </div>
       </label>
 
-      <!-- CLASSIC — المحرك الأصلي -->
+      <!-- CLASSIC — أكاديمي رسمي -->
       <label class="mopt">
         <input type="radio" name="engine" value="classic" onchange="onEngineChange()">
         <div class="mcard">
           <div class="mcheck">✓</div>
           <div class="mcard-top" style="background:linear-gradient(135deg,#1A2540,#2D3E6B)">
             <h4 style="color:#fff">Classic Academic</h4>
-            <p style="color:rgba(255,255,255,.6)">تقليدي · 3 هياكل × 8 ألوان</p>
+            <p style="color:rgba(255,255,255,.7);font-size:11px">أكاديمي رسمي · خلفية فاتحة · جداول هرمية</p>
           </div>
           <div class="mcard-palettes">
-            <span style="background:#07172F;color:#C6A03C;border-color:#07172F">أزرق ذهبي</span>
-            <span style="background:#061A28;color:#00D4AA;border-color:#061A28">تيل</span>
-            <span style="background:#3A0018;color:#F0B8CC;border-color:#3A0018">بورغندي</span>
-            <span style="background:#0F2D1E;color:#86BB56;border-color:#0F2D1E">غابي</span>
-            <span style="background:#12052E;color:#C07AFF;border-color:#12052E">بنفسجي</span>
-            <span>برتقالي</span><span>ثلجي</span><span>رملي</span>
+            <span style="background:#F5F5F0;color:#C6A03C;border-color:#ccc">أزرق ذهبي</span>
+            <span style="background:#F5F5F0;color:#2EBFA5;border-color:#ccc">تيل</span>
+            <span style="background:#F5F5F0;color:#C0392B;border-color:#ccc">بورغندي</span>
+            <span style="background:#F5F5F0;color:#8E44AD;border-color:#ccc">بنفسجي</span>
           </div>
-          <div class="mcard-count" data-i18n="classic_engine">⚙️ python-pptx · 3 هياكل Classic/Bold/Minimal</div>
+          <div class="mcard-count">⚙️ خلفية فاتحة · خطوط واضحة · تصميم رسمي</div>
+        </div>
+      </label>
+
+      <!-- BOLD — جريء مينيمال -->
+      <label class="mopt">
+        <input type="radio" name="engine" value="bold" onchange="onEngineChange()">
+        <div class="mcard">
+          <div class="mcheck">✓</div>
+          <div class="mcard-top" style="background:linear-gradient(135deg,#0D0D0D,#1A1A1A)">
+            <h4 style="color:#fff">Bold Minimal</h4>
+            <p style="color:rgba(255,255,255,.7);font-size:11px">جريء مينيمال · أرقام ضخمة · flat design</p>
+          </div>
+          <div class="mcard-palettes">
+            <span style="background:#0D0D0D;color:#C9B99A;border-color:#333">Noir</span>
+            <span style="background:#07172F;color:#C6A03C;border-color:#333">ذهبي</span>
+            <span style="background:#1C0E2B;color:#FF5C5C;border-color:#333">Sakura</span>
+            <span style="background:#1A1A2E;color:#FF6B35;border-color:#333">برتقالي</span>
+          </div>
+          <div class="mcard-count">⚙️ typography ضخم · flat design · بدون ظلال</div>
         </div>
       </label>
 
@@ -699,9 +695,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div id="premium-colors-wrap" style="display:none">
       <div class="cpick premium-colors" id="cpick-premium"></div>
     </div>
-    <div id="premium-warn" style="display:none;margin:8px 0;padding:9px 13px;background:rgba(255,180,0,.13);border:1px solid rgba(255,180,0,.35);border-radius:8px;font-size:12px;color:#f0c060">
-      ⚠️ <span data-i18n="premium_warn">محرك Premium يتطلب Node.js — قد يتحوّل تلقائياً لمحرك Canva إذا لم يكن متاحاً على الخادم</span>
-    </div>
+    
     <div class="color-preview" id="color-preview"></div>
   </div>
 
@@ -721,7 +715,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div class="mic mspin" id="mic">⚙️</div>
     <h3 id="mtitle" data-i18n="modal_title">جاري إنشاء العرض...</h3>
     <p id="msub" data-i18n="modal_sub">المحرك يبني الشرائح</p>
-    <div class="ptrack" id="ptrack"><div class="pfill" id="pfill"></div></div>
+    <div class="ptrack"><div class="pfill" id="pfill"></div></div>
     <div class="plbl" id="plbl">0%</div>
     <button id="bcancel" onclick="cancelGen()" style="margin-top:14px;background:none;border:1px solid #ccc;border-radius:8px;padding:6px 20px;font-size:12px;color:#888;cursor:pointer;">✕ إلغاء</button>
   </div>
@@ -1509,34 +1503,19 @@ function loadDraft(){
 // ═══════════════════════════════════════════════════════
 // ── فحص حالة الخادم وإشعار Premium fallback ──────────────────────
 let _nodeAvailable = null; // null = لم يُفحص بعد
-async function checkNodeAvailability(){
-  if(_nodeAvailable !== null) return _nodeAvailable;
-  try{
-    const r = await fetch('/health', {signal: AbortSignal.timeout(4000)});
-    if(r.ok){ const j=await r.json(); _nodeAvailable=j.node_available===true; }
-    else { _nodeAvailable=false; }
-  }catch{ _nodeAvailable=false; }
-  return _nodeAvailable;
-}
+// checkNodeAvailability removed v17.1
+
 
 // عند اختيار محرك Premium — تحذير فوري إذا Node غير متاح
-async function onEngineChange(){
-  const eng=document.querySelector('input[name="engine"]:checked')?.value;
-  document.getElementById('canva-colors-wrap').style.display   = eng==='canva'   ?'':'none';
-  document.getElementById('classic-colors-wrap').style.display = eng==='classic' ?'':'none';
-  document.getElementById('premium-colors-wrap').style.display = eng==='premium' ?'':'none';
-  // Select first palette of chosen engine
-  const first=document.querySelector(`#cpick-${eng} input[type="radio"]`);
-  if(first) first.checked=true;
-  // تحذير Premium
-  if(eng==='premium'){
-    const nodeOk = await checkNodeAvailability();
-    const warn = document.getElementById('premium-warn');
-    if(warn) warn.style.display = nodeOk ? 'none' : '';
-  } else {
-    const warn = document.getElementById('premium-warn');
-    if(warn) warn.style.display = 'none';
-  }
+function onEngineChange(){
+  const eng = document.querySelector('input[name="engine"]:checked')?.value || 'canva';
+  // All engines share the same palette set — just show canva colors
+  const cw = document.getElementById('canva-colors-wrap');
+  if(cw) cw.style.display = '';
+  const clw = document.getElementById('classic-colors-wrap');
+  if(clw) clw.style.display = 'none';
+  const pw = document.getElementById('premium-colors-wrap');
+  if(pw) pw.style.display = 'none';
   onPaletteChange();
 }
 
@@ -1544,115 +1523,86 @@ async function onEngineChange(){
 let _genAbort = null;
 
 async function generate(){
-  const d=collect();
-  if(!d.titleAr||!d.studentName){alert(t('required')+': '+t('student_name')+', '+t('title_ar'));goTo(0);return;}
+  const d = collect();
+  if(!d.titleAr || !d.studentName){
+    alert('يرجى ملء اسم الطالب وعنوان المذكرة');
+    goTo(0);
+    return;
+  }
 
-  // ── فتح الـ modal مرة واحدة فقط — لا يُغلق حتى النهاية ──
+  // فتح modal التحميل
   openM();
 
-  // ── Animation تقدمية مستمرة (تبدأ فوراً) ──
-  let _progStop = false;
-  let _currentP = 0;
-
-  const msgs_ar=['جاري تجهيز المحرك...','جاري معالجة البيانات...','بناء الشرائح...','تطبيق التصميم...','إضافة المحتوى...','اللمسات الأخيرة...','تجهيز الملف...'];
-  const msgs_fr=['Préparation du moteur...','Traitement des données...','Construction des slides...','Application du design...','Ajout du contenu...','Touches finales...','Préparation du fichier...'];
-  const msgs_en=['Warming up engine...','Processing data...','Building slides...','Applying design...','Adding content...','Final touches...','Preparing file...'];
-  const msgs={'ar':msgs_ar,'fr':msgs_fr,'en':msgs_en};
-
-  // ── FIX v17.1: Progress animation — لا تنتظر الخادم، تعمل بالتوازي ──
-  (async function liveProgress(){
-    const fast=[[5,400],[12,500],[20,500],[28,600],[30,500]];
-    for(const[p,ms] of fast){
-      if(_progStop) return;
-      await sl(ms); if(_progStop) return;
-      _currentP=p;
-      const mlist=msgs[currentLang]||msgs_ar;
-      setP(p, mlist[Math.floor(p/15)%mlist.length]);
-    }
-    let i=2;
-    while(_currentP < 92){
-      if(_progStop) return;
-      await sl(2500); if(_progStop) return;
-      _currentP = Math.min(92, _currentP + Math.random()*3+1.5);
-      const mlist=msgs[currentLang]||msgs_ar;
-      setP(Math.round(_currentP), mlist[i%mlist.length]); i++;
-    }
-  })();
-
-  // ── FIX v17.1: /generate يُطلق فوراً — warmup يعمل في الخلفية فقط ──
-  // السبب: الـ warmup loop القديمة كانت تحجب /generate حتى يستيقظ الخادم
-  // الحل: أرسل /generate مباشرة، والخادم سيرد عندما يكون جاهزاً
-  _genAbort = new AbortController();
-  const _timeoutId = setTimeout(()=>_genAbort.abort('timeout'), 240000);
-
-  // فحص سريع للخادم (غير حاجب) — لو فشل نكمل على أي حال
+  // شريط التقدم التلقائي
+  let _stop = false;
   (async()=>{
-    try{
-      await fetch('/warmup',{signal:AbortSignal.timeout(3000)});
-    }catch(e){}
+    const steps = [[5,300],[15,400],[25,500],[35,600],[45,700],[55,800],[65,900],[75,1000],[82,1200],[88,1500]];
+    const msgs = {
+      ar:['تجهيز البيانات...','بناء الشرائح...','تطبيق الثيم...','إضافة المحتوى...','اللمسات الأخيرة...','تجهيز الملف...'],
+      fr:['Préparation...','Construction...','Design...','Contenu...','Finition...','Fichier...'],
+      en:['Preparing...','Building slides...','Applying theme...','Adding content...','Final touches...','Preparing file...']
+    };
+    for(const [p, ms] of steps){
+      if(_stop) return;
+      await new Promise(r=>setTimeout(r, ms));
+      if(_stop) return;
+      const m = (msgs[currentLang]||msgs.ar);
+      setP(p, m[Math.floor(p/20) % m.length]);
+    }
+    // اكمل ببطء حتى 92%
+    let cur = 88;
+    while(cur < 92){
+      if(_stop) return;
+      await new Promise(r=>setTimeout(r, 2000));
+      if(_stop) return;
+      cur = Math.min(92, cur + 1);
+      setP(cur, '...');
+    }
   })();
 
-  let r = null;
-  let lastErr = null;
-  for(let attempt=1; attempt<=3; attempt++){
-    try{
-      if(attempt > 1){
-        const retryMsg={ar:'إعادة المحاولة...', fr:'Nouvelle tentative...', en:'Retrying...'};
-        setP(Math.max(15, _currentP), retryMsg[currentLang]||retryMsg.ar);
-        await sl(4000);
-      }
-      r = await fetch('/generate',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(d),
-        signal:_genAbort.signal
-      });
-      lastErr = null;
-      break;
-    }catch(fetchErr){
-      lastErr = fetchErr;
-      if(fetchErr.name==='AbortError') break;
-    }
-  }
-  try{
-    if(lastErr) throw lastErr;
-    clearTimeout(_timeoutId);
-    _progStop=true;
+  // إرسال الطلب مباشرة
+  try {
+    _genAbort = new AbortController();
+    const timeout = setTimeout(()=>_genAbort.abort(), 180000);
 
-    if(!r.ok){
-      const e=await r.json().catch(()=>({error:r.statusText}));
-      throw new Error(e.error||'Server error');
+    const res = await fetch('/generate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(d),
+      signal: _genAbort.signal
+    });
+
+    clearTimeout(timeout);
+    _stop = true;
+
+    if(!res.ok){
+      const err = await res.json().catch(()=>({error: res.statusText}));
+      throw new Error(err.error || 'خطأ في الخادم');
     }
-    // ── base64 JSON response (يتجاوز مشكلة Render proxy مع binary streams) ──
-    const json=await r.json();
-    if(!json.ok || !json.data) throw new Error(json.error||'استجابة غير صالحة من الخادم');
-    const isFallback = false; // v17: single unified engine, no fallbacks
-    // تحويل base64 → Blob → Object URL
-    const raw=atob(json.data);
-    const bytes=new Uint8Array(raw.length);
-    for(let i=0;i<raw.length;i++) bytes[i]=raw.charCodeAt(i);
-    const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
-    const url=URL.createObjectURL(blob);
-    setP(100,t('modal_ok'));await sl(300);
-    showOk(url,d.studentName,isFallback,json.filename);
+
+    const json = await res.json();
+    if(!json.ok || !json.data) throw new Error(json.error || 'استجابة غير صالحة');
+
+    // base64 → Blob → تنزيل
+    const bytes = Uint8Array.from(atob(json.data), c => c.charCodeAt(0));
+    const blob = new Blob([bytes], {type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
+    const url = URL.createObjectURL(blob);
+
+    setP(100, t('modal_ok'));
+    await new Promise(r=>setTimeout(r, 400));
+    showOk(url, d.studentName, false, json.filename);
     localStorage.removeItem('mp_v4');
-  }catch(e){
-    clearTimeout(_timeoutId);
-    _progStop=true;
+
+  } catch(e) {
+    _stop = true;
     closeM();
-    if(e.name==='AbortError' || e.message==='timeout' || e.message==='user'){
-      if(e.message==='user') return;
-      const msg={
-        ar:'⏱️ انتهت مهلة الاتصال.\n\nالخادم في وضع السكون (cold start على Render).\n\nانتظر 30 ثانية ثم حاول مجدداً.',
-        fr:'⏱️ Délai dépassé.\n\nServeur en veille (cold start Render).\n\nAttendez 30s et réessayez.',
-        en:'⏱️ Connection timed out.\n\nServer sleeping (Render cold start).\n\nWait 30s and retry.'
-      };
-      alert(msg[currentLang]||msg.ar);
+    if(e.name === 'AbortError'){
+      alert({ar:'⏱️ انتهت المهلة. الخادم نائم — انتظر 30 ثانية وأعد المحاولة.',fr:'⏱️ Timeout. Serveur en veille — attendez 30s.',en:'⏱️ Timeout. Server sleeping — wait 30s and retry.'}[currentLang] || 'Timeout');
     } else {
       alert(e.message);
     }
   } finally {
-    _genAbort=null;
+    _genAbort = null;
   }
 }
 
