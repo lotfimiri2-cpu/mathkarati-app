@@ -1,386 +1,683 @@
 """
-Engine B — CLASSIC ACADEMIC  v17.2
-هوية: أكاديمية رسمية راقية — خلفية فاتحة، ألوان محترمة، جداول هرمية نظيفة
+Classic Engine Slides — مذكرتي Pro v17
+تخطيط أكاديمي كلاسيكي: نظيف، هادئ، رسمي
+مختلف بصرياً عن Canva (بطاقات) وPremium (شريط جانبي)
 """
 from __future__ import annotations
-from pptx.dml.color import RGBColor
+from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
 from engine.primitives import (
-    W, H, cm, rect, rrect, oval, bg, hline, vline,
-    gradient_fill, gradient_rect, shadow, soft_shadow,
-    set_solid_alpha, txt, blank_slide,
+    W, H, rect, rrect, oval, bg, hline, vline,
+    gradient_fill, gradient_rect, shadow, set_solid_alpha, txt, blank_slide,
 )
 from core.themes import Theme
 from core.models import PresentationRequest
 
 _FONT = "Cairo"
-def set_font(f): global _FONT; _FONT = f
 
-# Classic fixed palette — light background
-_IVORY  = RGBColor(0xF4, 0xF2, 0xED)
-_IVORY2 = RGBColor(0xE8, 0xE5, 0xDE)
-_DARK   = RGBColor(0x15, 0x20, 0x35)
-_DARK2  = RGBColor(0x2A, 0x38, 0x5C)
-_GREY   = RGBColor(0x6A, 0x72, 0x80)
-_WHITE  = RGBColor(0xFF, 0xFF, 0xFF)
+HEADER_H = 2.2      # ارتفاع شريط العنوان العلوي
+FOOTER_H = 0.55     # ارتفاع الشريط السفلي
+MARGIN_X = 1.8      # هامش أفقي
 
 
-def _header(slide, T, title, sub=""):
-    """Classic: solid dark header + right border accent + elegant line"""
-    rect(slide, 0, 0, W, 2.8, _DARK2)
-    # Thick accent left border
-    ab = rect(slide, 0, 0, 0.65, 2.8, T.accent_rgb)
-    if ab: gradient_fill(ab, T.accent_grad1, T.accent_grad2, 90)
-    # Right decorative element — thin accent column
-    rect(slide, W-0.25, 0, 0.25, 2.8, T.accent_rgb)
-    # Bottom separator
-    hline(slide, 0.65, 2.8, W-0.9, T.accent_rgb, thickness=0.07)
-    hline(slide, 0.65, 2.87, W-0.9, _IVORY2, thickness=0.04)
-    txt(slide, title, 0.88, 0.22, W-1.5, 1.55,
-        font=_FONT, size=27, bold=True, color=_WHITE, align=PP_ALIGN.RIGHT)
-    if sub:
-        txt(slide, sub, 0.88, 1.7, W-1.5, 0.88,
-            font=_FONT, size=12, color=T.accent_rgb, align=PP_ALIGN.RIGHT)
+def set_font(font_name: str):
+    global _FONT
+    _FONT = font_name
 
 
-def make_cover(prs, req, T):
+# ══════════════════════════════════════════════════════════════════════
+# HEADER — شريط علوي بسيط في كل الشرائح
+# ══════════════════════════════════════════════════════════════════════
+def _header(slide, T: Theme, title: str, page_num: int = 0):
+    """شريط علوي أكاديمي: خلفية فاتحة + خط accent + عنوان"""
+    bg(slide, T.bg_rgb)
+
+    # خلفية الهيدر
+    hdr_bg = rect(slide, 0, 0, W, HEADER_H, T.bg2_rgb)
+
+    # خط accent سميك في الأسفل
+    accent_line = rect(slide, 0, HEADER_H - 0.12, W, 0.12, T.accent_rgb)
+    if accent_line:
+        gradient_fill(accent_line, T.accent_grad1, T.accent_grad2, angle=0)
+
+    # خط رفيع فوق accent
+    rect(slide, 0, HEADER_H - 0.22, W, 0.06, T.muted_rgb)
+
+    # عنوان الشريحة
+    txt(slide, title,
+        MARGIN_X, 0.3, W - MARGIN_X * 2, HEADER_H - 0.5,
+        font=_FONT, size=20, bold=True,
+        color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    # رقم الصفحة يسار
+    if page_num > 0:
+        txt(slide, str(page_num),
+            0.3, 0.3, 1.2, HEADER_H - 0.5,
+            font="Calibri", size=28, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.LEFT, rtl=False)
+
+    # شريط سفلي
+    footer_bg = rect(slide, 0, H - FOOTER_H, W, FOOTER_H, T.bg2_rgb)
+    footer_line = rect(slide, 0, H - FOOTER_H, W, 0.06, T.accent_rgb)
+    if footer_line:
+        gradient_fill(footer_line, T.accent_grad1, T.accent_grad2, 0)
+
+
+def _content_y():
+    return HEADER_H + 0.5
+
+
+def _content_h():
+    return H - HEADER_H - FOOTER_H - 1.0
+
+
+# ══════════════════════════════════════════════════════════════════════
+# COVER — Classic
+# ══════════════════════════════════════════════════════════════════════
+def make_cover(prs: Presentation, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    # Ivory body
-    rect(slide, 0, 0, W, H, _IVORY)
-    # Left full sidebar
-    sb = rect(slide, 0, 0, 1.5, H, _DARK2)
-    # Accent strip inside sidebar
-    rect(slide, 0, 0, 0.35, H, T.accent_rgb)
-    # Top dark header band
-    rect(slide, 1.5, 0, W-1.5, 3.8, _DARK2)
-    # Bottom dark footer
-    rect(slide, 1.5, H-1.1, W-1.5, 1.1, _DARK2)
+    bg(slide, T.bg_rgb)
 
-    # Institution
+    # طبقة خلفية بتدرج خفيف
+    gradient_rect(slide, 0, 0, W, H, T.grad1, T.grad2, angle=160)
+
+    # الإطار الخارجي — خطوط accent على الحواف
+    rect(slide, 0, 0, W, 0.18, T.accent_rgb)                  # أعلى
+    r_top = rect(slide, 0, 0, W, 0.18, T.accent_rgb)
+    if r_top: gradient_fill(r_top, T.accent_grad1, T.accent_grad2, 0)
+
+    r_bot = rect(slide, 0, H - 0.18, W, 0.18, T.accent_rgb)   # أسفل
+    if r_bot: gradient_fill(r_bot, T.accent_grad1, T.accent_grad2, 0)
+
+    vline(slide, 0.18, 0.18, H - 0.36, T.accent_rgb, thickness=0.06)     # يسار
+    vline(slide, W - 0.24, 0.18, H - 0.36, T.accent_rgb, thickness=0.06) # يمين
+
+    # المؤسسة
     if req.institution:
-        txt(slide, req.institution, 1.8, 0.22, W-2.2, 0.75,
-            font=_FONT, size=12, color=T.accent_rgb, align=PP_ALIGN.RIGHT)
+        txt(slide, req.institution,
+            2.0, 0.9, W - 4.0, 0.9,
+            font=_FONT, size=13, bold=False,
+            color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
-    # Title
-    sz = 28 if len(req.title_ar)<50 else 22 if len(req.title_ar)<75 else 17
-    txt(slide, req.title_ar, 1.8, 1.0, W-2.2, 2.5,
-        font=_FONT, size=sz, bold=True, color=_WHITE, align=PP_ALIGN.RIGHT)
+    # خط فاصل تحت المؤسسة
+    hline(slide, W * 0.2, 1.85, W * 0.6, T.accent_rgb, thickness=0.04)
 
-    # Gold separator line below title
-    hline(slide, 1.8, 3.95, W-3.4, T.accent_rgb, thickness=0.09)
-    hline(slide, 1.8, 4.08, W-3.4, _IVORY2, thickness=0.04)
+    # العنوان الرئيسي — في وسط الشريحة
+    title_y = H * 0.28
+    title_size = 26 if len(req.title_ar) < 50 else 20 if len(req.title_ar) < 80 else 16
 
-    # Info table
-    iy = 4.3; rh = 0.95
-    rows = [("اسم الطالب", req.student_name),
-            ("المشرف", req.supervisor),
-            ("التخصص", req.specialization),
-            ("السنة الدراسية", req.year)]
-    for i,(lbl,val) in enumerate([(l,v) for l,v in rows if v]):
-        bg_c = _IVORY2 if i%2==0 else _IVORY
-        rect(slide, 1.5, iy, W-1.5, rh, bg_c)
-        # Left label cell
-        rect(slide, 1.5, iy, 6.5, rh, _IVORY2 if i%2!=0 else _IVORY)
-        hline(slide, 1.5, iy, W-1.5, _IVORY2, thickness=0.04)
-        vline(slide, 8.0, iy, rh, _DARK2, thickness=0.05)
-        txt(slide, lbl, 1.65, iy+0.1, 6.2, rh-0.2,
-            font=_FONT, size=12, bold=True, color=T.accent_rgb, align=PP_ALIGN.RIGHT)
-        txt(slide, val, 8.2, iy+0.1, W-9.0, rh-0.2,
-            font=_FONT, size=13, color=_DARK, align=PP_ALIGN.RIGHT)
-        iy += rh
+    txt(slide, req.title_ar,
+        2.5, title_y, W - 5.0, H * 0.28,
+        font=_FONT, size=title_size, bold=True,
+        color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
-    # Footer info
+    if req.title_en:
+        txt(slide, req.title_en,
+            2.5, title_y + H * 0.27, W - 5.0, 0.9,
+            font="Calibri", size=11, bold=False, italic=True,
+            color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=False)
+
+    # خط فاصل تحت العنوان
+    div_y = title_y + H * 0.32
+    hline(slide, W * 0.15, div_y, W * 0.7, T.accent_rgb, thickness=0.06)
+
+    # جدول المعلومات — شبكة نظيفة
+    info_y = div_y + 0.45
+    row_h = 0.72
+
+    def info_row(label, value, y, is_bold=False):
+        # خلفية الصف
+        row_bg = rect(slide, MARGIN_X, y, W - MARGIN_X * 2, row_h - 0.06, T.bg2_rgb)
+        # خط يميني accent
+        vline(slide, W - MARGIN_X - 0.08, y, row_h - 0.06, T.accent_rgb, thickness=0.08)
+        # التسمية
+        txt(slide, label, MARGIN_X + 0.2, y, 4.5, row_h,
+            font=_FONT, size=11, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        # الفاصل
+        vline(slide, W / 2, y + 0.1, row_h - 0.26, T.muted_rgb, thickness=0.04)
+        # القيمة
+        txt(slide, value, W / 2 + 0.3, y, W / 2 - MARGIN_X - 0.5, row_h,
+            font=_FONT, size=12, bold=is_bold,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    info_row("اسم الطالب", req.student_name, info_y, is_bold=True)
+    r = 1
+    if req.supervisor:
+        info_row("المشرف", req.supervisor, info_y + row_h * r); r += 1
+    if req.co_supervisor:
+        info_row("المشرف المساعد", req.co_supervisor, info_y + row_h * r); r += 1
+    if req.specialization:
+        info_row("التخصص", req.specialization, info_y + row_h * r); r += 1
     if req.year:
-        txt(slide, req.year, 1.8, H-1.05, W-3.4, 0.9,
-            font="Calibri", size=14, bold=True, color=T.accent_rgb, align=PP_ALIGN.CENTER)
+        info_row("السنة الجامعية", req.year, info_y + row_h * r)
+
     return slide
 
 
-def _body(slide, T):
-    rect(slide, 0, 0, W, H, _IVORY)
-    rect(slide, 0, 0, 0.65, H, _DARK2)
-    rect(slide, 0, 0, 0.35, H, T.accent_rgb)
-    rect(slide, W-0.25, 0, 0.25, H, _IVORY2)
-
-
-def make_intro(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "مقدمة البحث", "")
-    cy = 3.05
-    for lbl, val in [(x,y) for x,y in [("نظرة عامة",req.intro_overview),("المنهج المتبع",req.intro_approach)] if y]:
-        # Section label bar
-        rect(slide, 0.9, cy, W-1.4, 0.6, _DARK2)
-        rect(slide, 0.9, cy, 0.45, 0.6, T.accent_rgb)
-        txt(slide, lbl, 1.55, cy, W-2.2, 0.6,
-            font=_FONT, size=13, bold=True, color=_WHITE, align=PP_ALIGN.RIGHT)
-        cy += 0.65
-        rect(slide, 0.9, cy, W-1.4, 3.1, _IVORY2)
-        hline(slide, 0.9, cy+3.1, W-1.4, _DARK2, thickness=0.04)
-        txt(slide, val, 1.05, cy+0.12, W-1.7, 2.85,
-            font=_FONT, size=12, color=_DARK, align=PP_ALIGN.RIGHT)
-        cy += 3.38
-    return slide
-
-
-def make_plan(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "خطة البحث", f"يتكون البحث من {len(req.chapters)} فصول")
-    cy = 3.05; chs = req.chapters[:8]
-    avail = H-cy-0.35; rh = min(avail/max(len(chs),1)-0.08, 1.65)
-    for i,ch in enumerate(chs):
-        y = cy+i*(rh+0.08)
-        bg_c = _IVORY if i%2==0 else _IVORY2
-        rect(slide, 0.9, y, W-1.4, rh, bg_c)
-        # Chapter number cell — full height
-        rect(slide, 0.9, y, 2.0, rh, T.accent_rgb if i%2==0 else _DARK2)
-        txt(slide, str(i+1), 0.9, y, 2.0, rh,
-            font="Calibri", size=20, bold=True, color=_WHITE, align=PP_ALIGN.CENTER)
-        vline(slide, 2.9, y, rh, _DARK2, thickness=0.05)
-        # Title
-        txt(slide, ch.title, 3.1, y, W-6.2, rh,
-            font=_FONT, size=13, color=_DARK, align=PP_ALIGN.RIGHT)
-        # Pages badge
-        if ch.pages:
-            rect(slide, W-3.5, y+(rh-0.42)/2, 2.35, 0.42, _DARK2)
-            txt(slide, f"ص {ch.pages}", W-3.5, y+(rh-0.42)/2, 2.35, 0.42,
-                font="Calibri", size=10, bold=True, color=T.accent_rgb, align=PP_ALIGN.CENTER)
-        hline(slide, 0.9, y+rh, W-1.4, _DARK2, thickness=0.03)
-    return slide
-
-
-def make_problem(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "إشكالية البحث")
-    cy = 3.05
-    if req.main_problem:
-        rect(slide, 0.9, cy, W-1.4, 2.0, _IVORY2)
-        rect(slide, 0.9, cy, 0.55, 2.0, T.accent_rgb)
-        rect(slide, 0.9, cy, W-1.4, 0.52, _DARK2)
-        txt(slide, "الإشكالية الرئيسية", 1.6, cy, W-2.2, 0.52,
-            font=_FONT, size=12, bold=True, color=_WHITE, align=PP_ALIGN.RIGHT)
-        txt(slide, req.main_problem, 1.65, cy+0.6, W-2.3, 1.28,
-            font=_FONT, size=12.5, color=_DARK, align=PP_ALIGN.RIGHT)
-        cy += 2.15
-    if req.main_question:
-        hline(slide, 0.9, cy, W-1.4, T.accent_rgb, thickness=0.07)
-        cy += 0.25
-        rect(slide, 0.9, cy, 0.55, 1.35, T.accent_rgb)
-        txt(slide, "التساؤل الرئيسي", 1.6, cy, 8.0, 0.55,
-            font=_FONT, size=11, bold=True, color=T.accent_rgb, align=PP_ALIGN.RIGHT)
-        txt(slide, req.main_question, 1.6, cy+0.58, W-2.3, 1.1,
-            font=_FONT, size=13, bold=True, italic=True, color=_DARK2, align=PP_ALIGN.RIGHT)
-        cy += 1.6
-    for i,q in enumerate(req.sub_questions[:4]):
-        y = cy+i*0.82
-        rect(slide, 0.9, y, W-1.4, 0.78, _IVORY2 if i%2==0 else _IVORY)
-        txt(slide, f"{i+1}.", 0.92, y+0.06, 1.2, 0.66,
-            font="Calibri", size=13, bold=True, color=T.accent_rgb, align=PP_ALIGN.LEFT)
-        txt(slide, q, 2.3, y+0.06, W-3.1, 0.66,
-            font=_FONT, size=11, color=_DARK, align=PP_ALIGN.RIGHT)
-    return slide
-
-
-def make_objectives(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "أهداف البحث وفرضياته")
-    cy = 3.05; cw = (W-1.8)/2
-    for ci,(lbl,items) in enumerate([(x,y) for x,y in [("الأهداف",req.objectives),("الفرضيات",req.hypotheses)] if y][:2]):
-        x = 0.9+ci*(cw+0.0)
-        rect(slide, x, cy, cw, 0.7, T.accent_rgb if ci==0 else _DARK2)
-        txt(slide, lbl, x, cy, cw, 0.7,
-            font=_FONT, size=15, bold=True, color=_WHITE, align=PP_ALIGN.CENTER)
-        ih = min((H-cy-1.1)/max(len(items),1)-0.06, 1.0)
-        for j,it in enumerate(items[:8]):
-            iy = cy+0.76+j*(ih+0.06)
-            bg_c = _IVORY2 if j%2==0 else _IVORY
-            rect(slide, x, iy, cw, ih, bg_c)
-            vline(slide, x, iy, ih, _DARK2, thickness=0.04)
-            txt(slide, f"{j+1}.", x+0.12, iy+0.06, 1.4, ih-0.12,
-                font="Calibri", size=12, bold=True, color=T.accent_rgb, align=PP_ALIGN.LEFT)
-            txt(slide, it, x+1.6, iy+0.06, cw-1.75, ih-0.12,
-                font=_FONT, size=10.5, color=_DARK, align=PP_ALIGN.RIGHT)
-            hline(slide, x, iy+ih, cw, _DARK2, thickness=0.03)
-        if ci==0: vline(slide, x+cw, cy, H-cy, _DARK2, thickness=0.06)
-    return slide
-
-
-def make_importance(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "أهمية البحث")
-    items = (req.importance+([req.reasons] if req.reasons else []))[:8]
-    cy = 3.05; ih = min((H-cy-0.35)/max(len(items),1)-0.07, 1.1)
-    for i,it in enumerate(items):
-        y = cy+i*(ih+0.07)
-        rect(slide, 0.9, y, W-1.4, ih, _IVORY2 if i%2==0 else _IVORY)
-        rect(slide, 0.9, y, 0.55, ih, T.accent_rgb)
-        txt(slide, str(i+1), 0.9, y, 0.55, ih,
-            font="Calibri", size=12, bold=True, color=_WHITE, align=PP_ALIGN.CENTER)
-        txt(slide, it, 1.65, y+0.08, W-2.25, ih-0.16,
-            font=_FONT, size=11.5, color=_DARK, align=PP_ALIGN.RIGHT)
-        hline(slide, 0.9, y+ih, W-1.4, _IVORY2, thickness=0.04)
-    return slide
-
-
-def make_methodology(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "منهجية البحث")
-    fields = [(l,v) for l,v in [("المنهج",req.methodology),("نوع العينة",req.sample_type),
-              ("حجم العينة",req.sample_size),("أداة الدراسة",req.tool)] if v]
-    cy = 3.05; rh = min((H-cy-0.35)/max(len(fields),1)-0.08, 1.75)
-    for i,(l,v) in enumerate(fields[:4]):
-        y = cy+i*(rh+0.08)
-        rect(slide, 0.9, y, W-1.4, rh, _IVORY2 if i%2==0 else _IVORY)
-        # Label column
-        lw = 7.0
-        rect(slide, 0.9, y, lw, rh, _IVORY2 if i%2!=0 else _IVORY)
-        vline(slide, 0.9+lw, y, rh, T.accent_rgb, thickness=0.08)
-        txt(slide, l, 1.0, y+0.12, lw-0.25, rh-0.24,
-            font=_FONT, size=13, bold=True, color=T.accent_rgb, align=PP_ALIGN.RIGHT)
-        txt(slide, v, 0.9+lw+0.2, y+0.12, W-lw-1.7, rh-0.24,
-            font=_FONT, size=13, color=_DARK, align=PP_ALIGN.RIGHT)
-        hline(slide, 0.9, y+rh, W-1.4, _DARK2, thickness=0.04)
-    return slide
-
-
-def make_stats(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "الإحصاءات والأرقام")
-    stats = req.stats[:6]; n = len(stats)
-    if not n: return slide
-    cols = 3 if n>=3 else n; cy = 3.05; gap = 0.4
-    cw = (W-1.6-(cols-1)*gap)/cols
-    rows = (n+cols-1)//cols; ch = min((H-cy-0.35)/rows-gap, 3.5)
-    for i,st in enumerate(stats):
-        x = 0.9+(i%cols)*(cw+gap); y = cy+(i//cols)*(ch+gap)
-        rect(slide, x, y, cw, ch, _IVORY2)
-        # Header band
-        rect(slide, x, y, cw, 0.55, T.accent_rgb if (i%2==0) else _DARK2)
-        txt(slide, st.label, x+0.1, y, cw-0.2, 0.55,
-            font=_FONT, size=11, bold=True, color=_WHITE, align=PP_ALIGN.CENTER)
-        # Big value
-        vsz = 40 if len(st.value)<=4 else 28 if len(st.value)<=8 else 20
-        txt(slide, st.value, x+0.1, y+0.6, cw-0.2, ch-1.1,
-            font="Calibri", size=vsz, bold=True, color=T.accent_rgb, align=PP_ALIGN.CENTER)
-        if st.unit:
-            txt(slide, st.unit, x+0.1, y+ch-0.62, cw-0.2, 0.52,
-                font=_FONT, size=10, color=_GREY, align=PP_ALIGN.CENTER)
-        # Bottom border
-        hline(slide, x, y+ch, cw, T.accent_rgb, thickness=0.06)
-    return slide
-
-
-def make_results(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "نتائج البحث")
-    results = req.main_results[:8]; cy = 3.05
-    ih = min((H-cy-0.35)/max(len(results),1)-0.08, 1.1)
-    for i,r in enumerate(results):
-        y = cy+i*(ih+0.08)
-        rect(slide, 0.9, y, W-1.4, ih, _IVORY2 if i%2==0 else _IVORY)
-        # Number cell
-        rect(slide, W-2.8, y, 1.9, ih, T.accent_rgb if i%2==0 else _DARK2)
-        txt(slide, str(i+1), W-2.8, y, 1.9, ih,
-            font="Calibri", size=16, bold=True, color=_WHITE, align=PP_ALIGN.CENTER)
-        txt(slide, r, 1.0, y+0.08, W-4.0, ih-0.16,
-            font=_FONT, size=11.5, color=_DARK, align=PP_ALIGN.RIGHT)
-        hline(slide, 0.9, y+ih, W-1.4, _DARK2, thickness=0.04)
-    return slide
-
-
-def make_conclusion(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "خاتمة البحث")
-    cy = 3.05
-    rect(slide, 0.9, cy, W-1.4, H-cy-0.4, _IVORY2)
-    rect(slide, 0.9, cy, 0.55, H-cy-0.4, T.accent_rgb)
-    hline(slide, 0.9, cy, W-1.4, T.accent_rgb, thickness=0.08)
-    hline(slide, 0.9, H-0.4, W-1.4, T.accent_rgb, thickness=0.08)
-    txt(slide, req.general_conclusion, 1.65, cy+0.3, W-2.25, H-cy-1.0,
-        font=_FONT, size=14, color=_DARK2, align=PP_ALIGN.RIGHT, spacing=22)
-    return slide
-
-
-def make_recommendations(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "توصيات البحث")
-    recs = req.recommendations[:8]; cy = 3.05
-    ih = min((H-cy-0.35)/max(len(recs),1)-0.08, 1.1)
-    for i,r in enumerate(recs):
-        y = cy+i*(ih+0.08)
-        rect(slide, 0.9, y, W-1.4, ih, _IVORY2 if i%2==0 else _IVORY)
-        rect(slide, 0.9, y, 0.55, ih, T.accent_rgb)
-        txt(slide, str(i+1), 0.9, y, 0.55, ih,
-            font="Calibri", size=12, bold=True, color=_WHITE, align=PP_ALIGN.CENTER)
-        txt(slide, r, 1.65, y+0.08, W-2.25, ih-0.16,
-            font=_FONT, size=11.5, color=_DARK, align=PP_ALIGN.RIGHT)
-        hline(slide, 0.9, y+ih, W-1.4, _IVORY2, thickness=0.04)
-    return slide
-
-
-def make_future(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "آفاق البحث المستقبلية")
-    items = req.future_work[:6]; cy = 3.05
-    ih = min((H-cy-0.35)/max(len(items),1)-0.08, 1.55)
-    for i,it in enumerate(items):
-        y = cy+i*(ih+0.08)
-        rect(slide, 0.9, y, W-1.4, ih, _IVORY2 if i%2==0 else _IVORY)
-        hline(slide, 0.9, y, W-1.4, T.accent_rgb, thickness=0.06)
-        txt(slide, "◈", 0.92, y+0.1, 1.5, ih-0.2,
-            font="Calibri", size=20, bold=True, color=T.accent_rgb, align=PP_ALIGN.LEFT)
-        txt(slide, it, 2.6, y+0.1, W-3.35, ih-0.2,
-            font=_FONT, size=12.5, color=_DARK2, align=PP_ALIGN.RIGHT)
-    return slide
-
-
-def make_references(prs, req, T):
-    slide = blank_slide(prs); _body(slide, T)
-    _header(slide, T, "المراجع والمصادر")
-    refs = req.references[:12]; cy = 3.05
-    ih = max(min((H-cy-0.35)/max(len(refs),1)-0.06, 1.05), 0.48)
-    for i,r in enumerate(refs):
-        y = cy+i*(ih+0.06)
-        if y+ih > H-0.32: break
-        rect(slide, 0.9, y, W-1.4, ih, _IVORY2 if i%2==0 else _IVORY)
-        txt(slide, f"[{i+1}]", W-2.8, y+0.04, 1.7, ih-0.08,
-            font="Calibri", size=10, bold=True, color=T.accent_rgb, align=PP_ALIGN.LEFT)
-        txt(slide, r, 1.0, y+0.04, W-4.0, ih-0.08,
-            font=_FONT, size=10, color=_DARK, align=PP_ALIGN.RIGHT)
-        hline(slide, 0.9, y+ih, W-1.4, _IVORY2, thickness=0.04)
-    return slide
-
-
-def make_final(prs, req, T):
+# ══════════════════════════════════════════════════════════════════════
+# SECTION SLIDES — كلاسيك: جدول/قائمة بأرقام + خطوط فاصلة
+# ══════════════════════════════════════════════════════════════════════
+def make_intro(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    rect(slide, 0, 0, W, H, _IVORY)
-    # Left dark panel
-    rect(slide, 0, 0, W*0.40, H, _DARK2)
-    rect(slide, 0, 0, 0.55, H, T.accent_rgb)
-    # Right ivory panel
-    rect(slide, W*0.40, 0, W*0.60, H, _IVORY)
-    # Accent top/bottom strips on right
-    rect(slide, W*0.40, 0, W*0.60, 0.55, _DARK2)
-    rect(slide, W*0.40, H-0.55, W*0.60, 0.55, _DARK2)
+    _header(slide, T, "مقدمة البحث", 1)
 
-    # Left panel text
-    txt(slide, "شكراً", 0.2, H*0.22, W*0.38, 3.5,
-        font=_FONT, size=44, bold=True, color=_WHITE, align=PP_ALIGN.CENTER)
-    txt(slide, "وتقديراً", 0.2, H*0.22+3.2, W*0.38, 2.0,
-        font=_FONT, size=26, color=T.accent_rgb, align=PP_ALIGN.CENTER)
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
 
-    # Gold divider line
-    hline(slide, W*0.40, H/2-0.04, W*0.60, T.accent_rgb, thickness=0.08)
+    items = []
+    if req.intro_overview:  items.append(("نظرة عامة", req.intro_overview))
+    if req.intro_approach:  items.append(("المنهج المتبع", req.intro_approach))
 
-    # Right panel info
-    rx = W*0.40+0.8; rw = W*0.55
-    txt(slide, req.student_name, rx, H*0.28, rw, 1.5,
-        font=_FONT, size=24, bold=True, color=_DARK2, align=PP_ALIGN.RIGHT)
-    hline(slide, rx, H*0.28+1.6, rw, T.accent_rgb, thickness=0.07)
-    td = req.title_ar[:85]+("..." if len(req.title_ar)>85 else "")
-    txt(slide, td, rx, H*0.28+1.85, rw, 2.8,
-        font=_FONT, size=13, color=_DARK, align=PP_ALIGN.RIGHT)
-    fp = " | ".join(filter(None,[req.institution, req.year]))
-    if fp:
-        txt(slide, fp, rx, H-1.45, rw, 0.85,
-            font=_FONT, size=11, color=_GREY, align=PP_ALIGN.RIGHT)
+    avail_h = _content_h()
+    card_h = avail_h / max(len(items), 1) - 0.25
+
+    for i, (lbl, val) in enumerate(items[:2]):
+        y = cy + i * (card_h + 0.25)
+        # خط accent يميني
+        vline(slide, W - MARGIN_X - 0.1, y, card_h, T.accent_rgb, thickness=0.1)
+        # تسمية
+        txt(slide, lbl, cx, y, cw - 0.4, 0.65,
+            font=_FONT, size=14, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        # خط تحت التسمية
+        hline(slide, cx, y + 0.7, cw - 0.4, T.muted_rgb, thickness=0.03)
+        # المحتوى
+        txt(slide, val, cx, y + 0.8, cw - 0.4, card_h - 0.9,
+            font=_FONT, size=12, bold=False,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    return slide
+
+
+def make_plan(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "خطة البحث", 2)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+    chapters = req.chapters[:8]
+    avail_h = _content_h()
+    row_h = min(avail_h / max(len(chapters), 1) - 0.1, 1.8)
+
+    for i, ch in enumerate(chapters):
+        y = cy + i * (row_h + 0.1)
+
+        # خلفية متناوبة
+        if i % 2 == 0:
+            rect(slide, cx, y, cw, row_h, T.bg2_rgb)
+        else:
+            rect(slide, cx, y, cw, row_h, T.card_rgb)
+
+        # خط accent يميني
+        vline(slide, W - MARGIN_X - 0.1, y, row_h, T.accent_rgb, thickness=0.1)
+
+        # رقم الفصل
+        txt(slide, f"الفصل {i + 1}", cx, y, 3.0, row_h,
+            font=_FONT, size=11, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+        # خط فاصل عمودي
+        vline(slide, cx + 3.2, y + 0.1, row_h - 0.2, T.muted_rgb, thickness=0.04)
+
+        # عنوان الفصل
+        txt(slide, ch.title, cx + 3.4, y, cw - 4.0, row_h,
+            font=_FONT, size=13, bold=False,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+        # الصفحات
+        if ch.pages:
+            txt(slide, ch.pages, cx, y, 1.5, row_h,
+                font="Calibri", size=10, bold=False,
+                color=T.muted_rgb, align=PP_ALIGN.LEFT, rtl=False)
+
+        # خط فاصل أفقي سفلي
+        hline(slide, cx, y + row_h, cw, T.bg_rgb, thickness=0.1)
+
+    return slide
+
+
+def make_problem(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "إشكالية البحث", 3)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+
+    if req.main_problem:
+        # بطاقة الإشكالية
+        vline(slide, W - MARGIN_X - 0.14, cy, 2.6, T.accent_rgb, thickness=0.14)
+        txt(slide, "الإشكالية الرئيسية", cx, cy, cw - 0.3, 0.65,
+            font=_FONT, size=13, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        hline(slide, cx, cy + 0.68, cw - 0.3, T.muted_rgb, thickness=0.03)
+        txt(slide, req.main_problem, cx, cy + 0.78, cw - 0.3, 1.7,
+            font=_FONT, size=12, bold=False,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        cy += 2.75
+
+    if req.main_question:
+        hline(slide, cx, cy, cw, T.accent_rgb, thickness=0.06)
+        cy += 0.15
+        txt(slide, "التساؤل الرئيسي", cx, cy, cw, 0.6,
+            font=_FONT, size=12, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        txt(slide, req.main_question, cx, cy + 0.65, cw, 1.3,
+            font=_FONT, size=12, bold=False, italic=True,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        cy += 2.1
+
+    if req.sub_questions:
+        hline(slide, cx, cy, cw, T.muted_rgb, thickness=0.03)
+        cy += 0.2
+        txt(slide, "التساؤلات الفرعية", cx, cy, cw, 0.55,
+            font=_FONT, size=11, bold=True,
+            color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        cy += 0.6
+        avail = H - cy - FOOTER_H - 0.5
+        sub_h = min(avail / max(len(req.sub_questions), 1), 0.85)
+        for i, q in enumerate(req.sub_questions[:6]):
+            y = cy + i * sub_h
+            txt(slide, f"{'─'} {q}", cx, y, cw, sub_h,
+                font=_FONT, size=11, bold=False,
+                color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    return slide
+
+
+def make_objectives(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "أهداف البحث وفرضياته", 4)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+
+    cols_data = []
+    if req.objectives:  cols_data.append(("الأهداف", req.objectives))
+    if req.hypotheses:  cols_data.append(("الفرضيات", req.hypotheses))
+    if not cols_data:   return slide
+
+    col_w = (cw - 0.4 * (len(cols_data) - 1)) / len(cols_data)
+
+    for i, (lbl, items) in enumerate(cols_data[:2]):
+        x = cx + i * (col_w + 0.4)
+
+        # عنوان العمود
+        rect(slide, x, cy, col_w, 0.65, T.bg2_rgb)
+        vline(slide, x + col_w - 0.1, cy, 0.65, T.accent_rgb, thickness=0.1)
+        txt(slide, lbl, x, cy, col_w - 0.2, 0.65,
+            font=_FONT, size=14, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+        hline(slide, x, cy + 0.65, col_w, T.accent_rgb, thickness=0.06)
+
+        avail_h = _content_h() - 0.8
+        item_h = min(avail_h / max(len(items), 1), 1.2) - 0.08
+
+        for j, item in enumerate(items[:8]):
+            iy = cy + 0.78 + j * (item_h + 0.08)
+
+            # خلفية متناوبة
+            fill = T.bg2_rgb if j % 2 == 0 else T.card_rgb
+            rect(slide, x, iy, col_w, item_h, fill)
+
+            # رقم
+            txt(slide, str(j + 1), x, iy, 0.7, item_h,
+                font="Calibri", size=11, bold=True,
+                color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
+            vline(slide, x + 0.75, iy + 0.05, item_h - 0.1, T.muted_rgb, thickness=0.03)
+
+            txt(slide, item, x + 0.85, iy + 0.08, col_w - 1.1, item_h - 0.16,
+                font=_FONT, size=10.5, bold=False,
+                color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+            hline(slide, x, iy + item_h, col_w, T.bg_rgb, thickness=0.08)
+
+    return slide
+
+
+def make_importance(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "أهمية البحث", 5)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+    items = req.importance[:6]
+    avail_h = _content_h()
+    item_h = min(avail_h / max(len(items), 1) - 0.12, 2.0)
+
+    for i, item in enumerate(items):
+        y = cy + i * (item_h + 0.12)
+
+        # خلفية
+        fill = T.bg2_rgb if i % 2 == 0 else T.card_rgb
+        rect(slide, cx, y, cw, item_h, fill)
+
+        # خط accent يميني
+        vline(slide, W - MARGIN_X - 0.12, y, item_h, T.accent_rgb, thickness=0.12)
+
+        # رقم كبير
+        txt(slide, f"{i + 1:02d}", cx, y, 1.5, item_h,
+            font="Calibri", size=22, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
+
+        vline(slide, cx + 1.6, y + 0.1, item_h - 0.2, T.muted_rgb, thickness=0.04)
+
+        txt(slide, item, cx + 1.8, y + 0.1, cw - 2.2, item_h - 0.2,
+            font=_FONT, size=12, bold=False,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    return slide
+
+
+def make_methodology(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "منهجية البحث", 6)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+
+    fields = []
+    if req.methodology:  fields.append(("المنهج المتبع", req.methodology))
+    if req.sample_type:  fields.append(("نوع العينة", req.sample_type))
+    if req.sample_size:  fields.append(("حجم العينة", req.sample_size))
+    if req.tool:         fields.append(("أداة الدراسة", req.tool))
+
+    avail_h = _content_h()
+    row_h = min(avail_h / max(len(fields), 1) - 0.15, 2.5)
+
+    for i, (lbl, val) in enumerate(fields[:4]):
+        y = cy + i * (row_h + 0.15)
+
+        # الصف
+        fill = T.bg2_rgb if i % 2 == 0 else T.card_rgb
+        rect(slide, cx, y, cw, row_h, fill)
+
+        # خط accent يميني
+        vline(slide, W - MARGIN_X - 0.12, y, row_h, T.accent_rgb, thickness=0.12)
+
+        # التسمية
+        rect(slide, cx, y, 5.0, row_h, T.bg2_rgb if i % 2 != 0 else T.card_rgb)
+        txt(slide, lbl, cx, y, 4.8, row_h,
+            font=_FONT, size=12, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+        # فاصل
+        vline(slide, cx + 5.1, y + 0.1, row_h - 0.2, T.muted_rgb, thickness=0.04)
+
+        # القيمة
+        txt(slide, val, cx + 5.3, y + 0.1, cw - 5.7, row_h - 0.2,
+            font=_FONT, size=12, bold=False,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    return slide
+
+
+def make_stats(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "الإحصاءات والأرقام", 7)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+    stats = req.stats[:6]
+    n = len(stats)
+    if n == 0:
+        return slide
+
+    cols = 3 if n >= 3 else n
+    rows = (n + cols - 1) // cols
+    gap = 0.35
+    card_w = (cw - gap * (cols - 1)) / cols
+    avail_h = _content_h()
+    card_h = min(avail_h / rows - gap, 4.0)
+
+    for i, stat in enumerate(stats):
+        col_idx = i % cols
+        row_idx = i // cols
+        x = cx + col_idx * (card_w + gap)
+        y = cy + row_idx * (card_h + gap)
+
+        # إطار البطاقة
+        card_bg = rect(slide, x, y, card_w, card_h, T.bg2_rgb)
+
+        # خط accent أعلى
+        top = rect(slide, x, y, card_w, 0.12, T.accent_rgb)
+        if top: gradient_fill(top, T.accent_grad1, T.accent_grad2, 0)
+
+        # خط accent يميني
+        vline(slide, x + card_w - 0.1, y, card_h, T.accent_rgb, thickness=0.1)
+
+        # القيمة الرئيسية
+        val_size = 34 if len(stat.value) <= 5 else 24 if len(stat.value) <= 9 else 18
+        txt(slide, stat.value, x + 0.2, y + 0.3, card_w - 0.5, card_h * 0.52,
+            font="Calibri", size=val_size, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
+
+        # خط فاصل
+        hline(slide, x + 0.3, y + card_h * 0.56, card_w - 0.6,
+              T.muted_rgb, thickness=0.04)
+
+        if stat.unit:
+            txt(slide, stat.unit, x + 0.2, y + card_h * 0.58, card_w - 0.5, 0.5,
+                font=_FONT, size=10, bold=False,
+                color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
+
+        txt(slide, stat.label, x + 0.2, y + card_h - 0.9, card_w - 0.5, 0.75,
+            font=_FONT, size=11, bold=False,
+            color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
+
+    return slide
+
+
+def make_results(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "نتائج البحث", 8)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+    results = req.main_results[:8]
+    avail_h = _content_h()
+    item_h = min(avail_h / max(len(results), 1) - 0.1, 1.5)
+
+    for i, result in enumerate(results):
+        y = cy + i * (item_h + 0.1)
+
+        fill = T.bg2_rgb if i % 2 == 0 else T.card_rgb
+        rect(slide, cx, y, cw, item_h, fill)
+
+        # خط accent يميني
+        vline(slide, W - MARGIN_X - 0.12, y, item_h, T.accent_rgb, thickness=0.12)
+
+        # رقم
+        txt(slide, str(i + 1), cx, y, 0.9, item_h,
+            font="Calibri", size=14, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
+
+        vline(slide, cx + 1.0, y + 0.08, item_h - 0.16, T.muted_rgb, thickness=0.04)
+
+        txt(slide, result, cx + 1.1, y + 0.08, cw - 1.5, item_h - 0.16,
+            font=_FONT, size=12, bold=False,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    return slide
+
+
+def make_conclusion(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "خاتمة البحث", 9)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+    avail_h = _content_h()
+
+    # إطار كامل
+    rect(slide, cx, cy, cw, avail_h, T.bg2_rgb)
+    vline(slide, W - MARGIN_X - 0.14, cy, avail_h, T.accent_rgb, thickness=0.14)
+    vline(slide, cx, cy, avail_h, T.bg2_rgb, thickness=0.14)
+
+    # عنوان فرعي
+    txt(slide, "الاستنتاج العام", cx, cy + 0.2, cw - 0.3, 0.7,
+        font=_FONT, size=13, bold=True,
+        color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    hline(slide, cx, cy + 0.95, cw - 0.3, T.accent_rgb, thickness=0.06)
+
+    txt(slide, req.general_conclusion,
+        cx, cy + 1.1, cw - 0.3, avail_h - 1.3,
+        font=_FONT, size=13, bold=False,
+        color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    return slide
+
+
+def make_recommendations(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "توصيات البحث", 10)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+    recs = req.recommendations[:8]
+    avail_h = _content_h()
+    item_h = min(avail_h / max(len(recs), 1) - 0.1, 1.4)
+
+    for i, rec in enumerate(recs):
+        y = cy + i * (item_h + 0.1)
+        fill = T.bg2_rgb if i % 2 == 0 else T.card_rgb
+        rect(slide, cx, y, cw, item_h, fill)
+
+        vline(slide, W - MARGIN_X - 0.12, y, item_h, T.accent_rgb, thickness=0.12)
+
+        # نقطة
+        oval(slide, cx + 0.25, y + (item_h - 0.38) / 2,
+             0.38, 0.38, T.accent_rgb)
+
+        txt(slide, rec, cx + 0.8, y + 0.08, cw - 1.2, item_h - 0.16,
+            font=_FONT, size=12, bold=False,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    return slide
+
+
+def make_future(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "آفاق البحث المستقبلية", 11)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+    items = req.future_work[:6]
+    avail_h = _content_h()
+    item_h = min(avail_h / max(len(items), 1) - 0.12, 2.0)
+
+    for i, item in enumerate(items):
+        y = cy + i * (item_h + 0.12)
+        fill = T.bg2_rgb if i % 2 == 0 else T.card_rgb
+        rect(slide, cx, y, cw, item_h, fill)
+
+        vline(slide, W - MARGIN_X - 0.12, y, item_h, T.accent_rgb, thickness=0.12)
+
+        # رقم + فاصل
+        txt(slide, str(i + 1), cx, y, 0.9, item_h,
+            font="Calibri", size=16, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
+        vline(slide, cx + 1.0, y + 0.1, item_h - 0.2, T.muted_rgb, thickness=0.04)
+
+        txt(slide, item, cx + 1.2, y + 0.1, cw - 1.6, item_h - 0.2,
+            font=_FONT, size=12, bold=False,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    return slide
+
+
+def make_references(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _header(slide, T, "قائمة المراجع", 12)
+
+    cx = MARGIN_X
+    cw = W - MARGIN_X * 2
+    cy = _content_y()
+    refs = req.references[:12]
+    avail_h = _content_h()
+    item_h = max(min(avail_h / max(len(refs), 1) - 0.08, 1.1), 0.52)
+
+    for i, ref in enumerate(refs):
+        y = cy + i * (item_h + 0.08)
+        if y + item_h > H - FOOTER_H - 0.2:
+            break
+
+        fill = T.bg2_rgb if i % 2 == 0 else T.card_rgb
+        rect(slide, cx, y, cw, item_h, fill)
+
+        vline(slide, W - MARGIN_X - 0.1, y, item_h, T.accent_rgb, thickness=0.1)
+
+        txt(slide, f"[{i + 1}]", cx, y, 1.0, item_h,
+            font="Calibri", size=9, bold=True,
+            color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
+
+        vline(slide, cx + 1.1, y + 0.05, item_h - 0.1, T.muted_rgb, thickness=0.03)
+
+        txt(slide, ref, cx + 1.2, y + 0.05, cw - 1.5, item_h - 0.1,
+            font=_FONT, size=10, bold=False,
+            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+
+    return slide
+
+
+def make_final(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    bg(slide, T.bg_rgb)
+    gradient_rect(slide, 0, 0, W, H, T.grad1, T.grad2, angle=160)
+
+    # إطار خارجي
+    r_top = rect(slide, 0, 0, W, 0.2, T.accent_rgb)
+    if r_top: gradient_fill(r_top, T.accent_grad1, T.accent_grad2, 0)
+    r_bot = rect(slide, 0, H - 0.2, W, 0.2, T.accent_rgb)
+    if r_bot: gradient_fill(r_bot, T.accent_grad1, T.accent_grad2, 0)
+    vline(slide, 0.2, 0.2, H - 0.4, T.accent_rgb, thickness=0.06)
+    vline(slide, W - 0.26, 0.2, H - 0.4, T.accent_rgb, thickness=0.06)
+
+    center_x = W / 2
+    # شكر وتقدير
+    txt(slide, "شكراً وتقديراً",
+        2.0, H * 0.22, W - 4.0, 2.5,
+        font=_FONT, size=34, bold=True,
+        color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
+
+    # خط مزدوج
+    hline(slide, W * 0.15, H * 0.46, W * 0.7, T.accent_rgb, thickness=0.06)
+    hline(slide, W * 0.2,  H * 0.47 + 0.12, W * 0.6, T.muted_rgb, thickness=0.03)
+
+    # اسم الطالب
+    txt(slide, req.student_name,
+        2.0, H * 0.5, W - 4.0, 1.3,
+        font=_FONT, size=20, bold=True,
+        color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=True)
+
+    # عنوان المذكرة
+    title_short = req.title_ar[:70] + ("..." if len(req.title_ar) > 70 else "")
+    txt(slide, title_short,
+        2.5, H * 0.62, W - 5.0, 1.8,
+        font=_FONT, size=12, bold=False, italic=True,
+        color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
+
+    # المؤسسة والسنة
+    footer = []
+    if req.institution: footer.append(req.institution)
+    if req.year:        footer.append(req.year)
+    if footer:
+        txt(slide, " · ".join(footer),
+            2.0, H * 0.8, W - 4.0, 0.8,
+            font=_FONT, size=11, bold=False,
+            color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
+
     return slide

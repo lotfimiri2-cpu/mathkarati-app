@@ -1,743 +1,755 @@
 """
-Slide Builder — مذكرتي Pro v17
-Each make_* function builds exactly one slide type.
-Pure functions: (prs, request, theme) → slide
-No global state. No file I/O. No threading.
+Canva Engine — مذكرتي Pro v17.2
+تخطيط Canva: بطاقات عائمة، تدرجات متعددة، زخارف هندسية
 """
 from __future__ import annotations
-
-import sys
 from pptx import Presentation
-from pptx.util import Cm, Pt
-from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
-
 from engine.primitives import (
-    W, H, cm, pt,
-    rect, rrect, oval, bg, hline, vline,
+    W, H, rect, rrect, oval, bg, hline, vline,
     gradient_fill, gradient_rect, shadow,
-    set_solid_alpha,
+    set_solid_alpha, multi_stop_gradient,
+    glow, gradient_oval, diamond, hexagon,
+    decorative_dots, card_3d,
+    icon_circle, number_badge,
+    slide_number,
     txt, blank_slide,
 )
 from core.themes import Theme
 from core.models import PresentationRequest
 
-# Default font — will be overridden at runtime if Cairo not available
 _FONT = "Cairo"
-
 
 def set_font(font_name: str):
     global _FONT
     _FONT = font_name
 
-
-def _hx(h: str) -> RGBColor:
-    h = h.lstrip('#')
-    return RGBColor(int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
-
-
-# ══════════════════════════════════════════════════════════════════════
-# COVER SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_cover(prs: Presentation, req: PresentationRequest, T: Theme):
-    slide = blank_slide(prs)
+# ══════════════════════════════════════════════════════════════
+# BACKGROUND CANVAS
+# ══════════════════════════════════════════════════════════════
+def _bg_canvas(slide, T: Theme, style='default'):
     bg(slide, T.bg_rgb)
+    if style == 'default':
+        gradient_rect(slide, 0, 0, W, H, T.grad1, T.grad2, angle=135)
+        oval(slide, -4, -4, 13, 13, T.accent_rgb, alpha=5)
+        oval(slide, W-11, H-10, 18, 18, T.bg2_rgb, alpha=50)
+        oval(slide, W-6, -3, 10, 10, T.accent_rgb, alpha=4)
+        decorative_dots(slide, 1.5, H-4.5, 6, 3, 0.18, 0.45, T.accent_rgb, alpha=12)
+    elif style == 'split':
+        gradient_rect(slide, 0, 0, W, H*0.55, T.grad2, T.grad1, angle=90)
+        gradient_rect(slide, 0, H*0.55, W, H*0.45, T.bg2, T.bg, angle=90)
+        div = rect(slide, 0, H*0.55-0.08, W, 0.16, T.accent_rgb)
+        if div: multi_stop_gradient(div, [(0,T.bg),(50,T.accent),(100,T.bg)], angle=0)
+        oval(slide, -3, -3, 12, 12, T.accent_rgb, alpha=5)
+        oval(slide, W-8, H-8, 14, 14, T.accent_rgb, alpha=4)
+        decorative_dots(slide, W-7, 1.5, 5, 4, 0.16, 0.4, T.accent_rgb, alpha=10)
+    elif style == 'geometric':
+        gradient_rect(slide, 0, 0, W, H, T.grad1, T.grad2, angle=160)
+        diamond(slide, W-8, -2.5, 7, 7, T.accent_rgb, alpha=6)
+        diamond(slide, -2, H-5, 5, 5, T.accent_rgb, alpha=5)
+        diamond(slide, W*0.4, H-4, 4, 4, T.bg2_rgb, alpha=40)
+        hexagon(slide, W-5, H*0.3, 3, 3, T.accent_rgb, alpha=7)
+        decorative_dots(slide, 1.2, 2.0, 4, 5, 0.16, 0.38, T.accent_rgb, alpha=10)
+    elif style == 'radial':
+        gradient_rect(slide, 0, 0, W, H, T.grad1, T.grad2, angle=45)
+        cx2, cy2 = W*0.5, H*0.5
+        for r_size, alpha in [(28,4),(22,5),(16,6),(10,8)]:
+            oval(slide, cx2-r_size/2, cy2-r_size/2, r_size, r_size, T.accent_rgb, alpha=alpha)
+        decorative_dots(slide, 2.0, H-4, 5, 2, 0.2, 0.5, T.accent_rgb, alpha=12)
 
-    # Background gradient overlay
-    s = gradient_rect(slide, 0, 0, W, H, T.grad1, T.grad2, angle=135)
+# ══════════════════════════════════════════════════════════════
+# HEADERS
+# ══════════════════════════════════════════════════════════════
+def _header_wave(slide, T, title, subtitle=""):
+    gradient_rect(slide, 0, 0, W, 3.2, T.grad2, T.grad1, angle=135)
+    acc = rect(slide, 0, 3.2-0.18, W, 0.18, T.accent_rgb)
+    if acc: multi_stop_gradient(acc, [(0,T.bg),(40,T.accent),(60,T.accent2),(100,T.bg)], 0)
+    oval(slide, W-4.5, -2.0, 6.5, 6.5, T.accent_rgb, alpha=10)
+    oval(slide, -2, -1.5, 5, 5, T.bg2_rgb, alpha=60)
+    txt(slide, title, 0.8, 0.3, W-1.6, 1.6, font=_FONT, size=23, bold=True,
+        color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+    if subtitle:
+        txt(slide, subtitle, 0.8, 1.95, W-1.6, 1.0, font=_FONT, size=12,
+            bold=False, italic=True, color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
-    # Decorative geometric elements
-    # Top-left corner accent
-    s1 = rrect(slide, -0.5, -0.5, 8, 8, T.accent_rgb, radius_pct=0)
-    if s1:
-        gradient_fill(s1, T.accent_grad1, T.accent_grad2, angle=45)
-        set_solid_alpha(s1, 8)
+def _header_bar(slide, T, title, subtitle=""):
+    gradient_rect(slide, 0, 0, W, 3.0, T.grad1, T.grad2, angle=90)
+    acc_v = rect(slide, 0, 0, 0.5, 3.0, T.accent_rgb)
+    if acc_v: gradient_fill(acc_v, T.accent_grad1, T.accent_grad2, 90)
+    acc_h = rect(slide, 0, 3.0-0.1, W, 0.1, T.accent_rgb)
+    if acc_h: gradient_fill(acc_h, T.accent_grad1, T.accent_grad2, 0)
+    oval(slide, W-5, -1.8, 6, 6, T.accent_rgb, alpha=8)
+    txt(slide, title, 0.8, 0.35, W-1.6, 1.55, font=_FONT, size=22, bold=True,
+        color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+    if subtitle:
+        txt(slide, subtitle, 0.8, 1.98, W-1.6, 0.85, font=_FONT, size=12,
+            bold=False, color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
-    # Bottom-right circle
-    s2 = oval(slide, W - 10, H - 10, 14, 14, T.accent_rgb, alpha=6)
+def _section_header(slide, T, title, subtitle="", style=0):
+    if style % 2 == 0:
+        _header_wave(slide, T, title, subtitle)
+    else:
+        _header_bar(slide, T, title, subtitle)
 
-    # Top accent bar
-    accent_bar = rrect(slide, 0, 0, W, 0.55, T.accent_rgb, radius_pct=0)
-    if accent_bar:
-        gradient_fill(accent_bar, T.accent_grad1, T.accent_grad2, angle=0)
+# ══════════════════════════════════════════════════════════════
+# COVER
+# ══════════════════════════════════════════════════════════════
+def make_cover(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _bg_canvas(slide, T, 'geometric')
 
-    # Institution badge (top-left area)
+    top = rect(slide, 0, 0, W, 0.45, T.accent_rgb)
+    if top: multi_stop_gradient(top, [(0,T.bg),(30,T.accent),(70,T.accent2),(100,T.bg)], 0)
+    bot = rect(slide, 0, H-0.3, W, 0.3, T.accent_rgb)
+    if bot: gradient_fill(bot, T.accent_grad1, T.accent_grad2, 0)
+
     if req.institution:
-        institution_card = rrect(slide, 1.2, 0.9, 14, 0.7, T.card_rgb, radius_pct=35)
-        if institution_card:
-            shadow(institution_card, blur=10, dist=3, alpha=0.3)
-        txt(slide, req.institution, 1.4, 0.9, 13.6, 0.7,
-            font=_FONT, size=11, bold=False,
-            color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        ib = rrect(slide, W/2-9, 0.65, 18, 0.75, T.card_rgb, radius_pct=40)
+        if ib: set_solid_alpha(ib, 85)
+        txt(slide, req.institution, W/2-9, 0.65, 18, 0.75, font=_FONT, size=11,
+            bold=False, color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
-    # Main title area — centered
-    title_y = H * 0.28
-    title_h = H * 0.32
+    cy = H*0.2; cw = W-4.0; cx = 2.0; ch = H*0.42
+    mc = rrect(slide, cx, cy, cw, ch, T.card_rgb, radius_pct=14)
+    if mc:
+        multi_stop_gradient(mc, [(0,T.card),(100,T.bg2)], angle=135)
+        shadow(mc, blur=28, dist=8, alpha=0.5)
 
-    # Title card background
-    title_card = rrect(slide, 1.5, title_y - 0.3, W - 3.0, title_h + 0.6,
-                       T.card_rgb, radius_pct=12)
-    if title_card:
-        shadow(title_card, blur=20, dist=6, alpha=0.4)
+    ct = rrect(slide, cx, cy, cw, 0.38, T.accent_rgb, radius_pct=0)
+    if ct: multi_stop_gradient(ct, [(0,T.accent),(50,T.accent2),(100,T.accent)], 0)
+    vline(slide, cx+cw-0.25, cy+0.38, ch-0.38, T.accent_rgb, thickness=0.25)
 
-    # Accent top stripe on card
-    stripe = rrect(slide, 1.5, title_y - 0.3, W - 3.0, 0.25, T.accent_rgb, radius_pct=0)
-    if stripe:
-        gradient_fill(stripe, T.accent_grad1, T.accent_grad2, angle=0)
+    ts = 26 if len(req.title_ar)<45 else 21 if len(req.title_ar)<75 else 17
+    txt(slide, req.title_ar, cx+0.5, cy+0.55, cw-1.0, ch*0.62,
+        font=_FONT, size=ts, bold=True, color=T.text_light_rgb,
+        align=PP_ALIGN.CENTER, rtl=True)
 
-    # Title text
-    title_size = 28 if len(req.title_ar) < 50 else 22 if len(req.title_ar) < 80 else 18
-    txt(slide, req.title_ar,
-        2.0, title_y, W - 4.0, title_h,
-        font=_FONT, size=title_size, bold=True,
-        color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
-
-    # English title if provided
     if req.title_en:
-        txt(slide, req.title_en,
-            2.0, title_y + title_h - 0.8, W - 4.0, 0.9,
-            font="Calibri", size=12, bold=False, italic=True,
+        txt(slide, req.title_en, cx+0.5, cy+ch*0.66, cw-1.0, 0.85,
+            font="Calibri", size=11, bold=False, italic=True,
             color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
-    # Divider line
-    div_y = title_y + title_h + 0.5
-    hline(slide, W * 0.25, div_y, W * 0.5, T.accent_rgb, thickness=0.06)
+    div_y = cy+ch*0.76
+    dl = rect(slide, cx+cw*0.1, div_y, cw*0.8, 0.05, T.accent_rgb)
+    if dl: multi_stop_gradient(dl, [(0,T.bg2),(50,T.accent),(100,T.bg2)], 0)
 
-    # Student info block
-    info_y = div_y + 0.3
-    row_h = 0.65
+    info_y = div_y+0.25; rh = 0.62
 
-    # Student name
-    _info_row(slide, T, "الطالب :", req.student_name, info_y)
-
-    # Supervisor
-    if req.supervisor:
-        _info_row(slide, T, "المشرف :", req.supervisor, info_y + row_h)
-
-    if req.co_supervisor:
-        _info_row(slide, T, "المشرف المساعد :", req.co_supervisor, info_y + row_h * 2)
-
-    if req.specialization:
-        extra_y = info_y + row_h * (3 if req.co_supervisor else 2 if req.supervisor else 1)
-        _info_row(slide, T, "التخصص :", req.specialization, extra_y)
-
-    # Year badge
-    if req.year:
-        yr_y = H - 0.85
-        yr_card = rrect(slide, W / 2 - 2.2, yr_y, 4.4, 0.52, T.accent_rgb, radius_pct=50)
-        if yr_card:
-            gradient_fill(yr_card, T.accent_grad1, T.accent_grad2, angle=0)
-            shadow(yr_card, blur=10, dist=2, alpha=0.3)
-        txt(slide, req.year, W / 2 - 2.2, yr_y, 4.4, 0.52,
-            font="Calibri", size=12, bold=True,
-            color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False)
-
-    # Bottom accent bar
-    bottom_bar = rect(slide, 0, H - 0.22, W, 0.22, T.accent_rgb)
-    if bottom_bar:
-        gradient_fill(bottom_bar, T.accent_grad1, T.accent_grad2, angle=0)
-
-    return slide
-
-
-def _info_row(slide, T: Theme, label: str, value: str, y: float):
-    """Render a label:value row for cover slide."""
-    row_bg = rrect(slide, 1.5, y - 0.05, W - 3.0, 0.58, T.bg2_rgb, radius_pct=8)
-    # Label
-    txt(slide, label, 1.7, y, 5.5, 0.58,
-        font=_FONT, size=11, bold=True,
-        color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
-    # Value
-    txt(slide, value, 7.5, y, W - 9.2, 0.58,
-        font=_FONT, size=12, bold=False,
-        color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
-
-
-# _set_alpha removed — use set_solid_alpha from primitives
-
-
-# ══════════════════════════════════════════════════════════════════════
-# SECTION HEADER (reusable)
-# ══════════════════════════════════════════════════════════════════════
-def _section_header(slide, T: Theme, title: str, subtitle: str = ""):
-    """Standard section header at top of slide."""
-    # Header strip
-    header = gradient_rect(slide, 0, 0, W, 2.8, T.grad1, T.grad2, angle=135)
-    # Accent left bar
-    accent_line = rect(slide, 0, 0, 0.35, 2.8, T.accent_rgb)
-    if accent_line:
-        gradient_fill(accent_line, T.accent_grad1, T.accent_grad2, angle=90)
-
-    # Decorative circle
-    oval(slide, W - 3.5, -1.2, 4.8, 4.8, T.accent_rgb, alpha=8)
-
-    # Title
-    txt(slide, title, 0.6, 0.35, W - 1.2, 1.35,
-        font=_FONT, size=22, bold=True,
-        color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
-
-    if subtitle:
-        txt(slide, subtitle, 0.6, 1.6, W - 1.2, 0.9,
-            font=_FONT, size=13, bold=False,
-            color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
-
-
-# ══════════════════════════════════════════════════════════════════════
-# INTRO SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_intro(prs: Presentation, req: PresentationRequest, T: Theme):
-    slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "مقدمة البحث", "نظرة عامة وأسلوب المعالجة")
-
-    content_y = 3.1
-    col_w = (W - 2.8) / 2
-    gap = 0.3
-
-    items = []
-    if req.intro_overview:
-        items.append(("نظرة عامة", req.intro_overview))
-    if req.intro_approach:
-        items.append(("المنهج المتبع", req.intro_approach))
-
-    for i, (lbl, val) in enumerate(items[:2]):
-        x = 1.2 + i * (col_w + gap)
-        card = rrect(slide, x, content_y, col_w, H - content_y - 0.8, T.card_rgb, radius_pct=10)
-        if card:
-            shadow(card, blur=14, dist=4, alpha=0.35)
-        # Card accent top
-        card_stripe = rrect(slide, x, content_y, col_w, 0.22, T.accent_rgb, radius_pct=0)
-        if card_stripe:
-            gradient_fill(card_stripe, T.accent_grad1, T.accent_grad2, angle=0)
-        txt(slide, lbl, x + 0.2, content_y + 0.28, col_w - 0.4, 0.7,
-            font=_FONT, size=13, bold=True,
+    def _row(label, value, y):
+        rb = rrect(slide, cx+0.4, y, cw-0.8, rh, T.bg_rgb, radius_pct=8)
+        if rb: set_solid_alpha(rb, 60)
+        txt(slide, label, cx+0.6, y, 4.5, rh, font=_FONT, size=10.5, bold=True,
             color=T.accent_rgb, align=PP_ALIGN.RIGHT, rtl=True)
-        txt(slide, val, x + 0.2, content_y + 1.05, col_w - 0.4, H - content_y - 2.2,
-            font=_FONT, size=11.5, bold=False,
-            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        vline(slide, cx+5.3, y+0.08, rh-0.16, T.muted_rgb, thickness=0.04)
+        txt(slide, value, cx+5.5, y, cw-6.3, rh, font=_FONT, size=11.5,
+            bold=False, color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
+    r = 0
+    _row("الطالب :", req.student_name, info_y+r*rh); r+=1
+    if req.supervisor: _row("المشرف :", req.supervisor, info_y+r*rh); r+=1
+    if req.co_supervisor: _row("المشرف المساعد :", req.co_supervisor, info_y+r*rh); r+=1
+    if req.specialization: _row("التخصص :", req.specialization, info_y+r*rh)
+
+    if req.year:
+        yb = rrect(slide, W/2-2.5, H-1.55, 5.0, 0.6, T.accent_rgb, radius_pct=50)
+        if yb:
+            multi_stop_gradient(yb, [(0,T.accent),(100,T.accent2)], 0)
+            shadow(yb, blur=12, dist=3, alpha=0.35)
+            glow(yb, T.accent.lstrip('#'), radius=15, alpha=0.25)
+        txt(slide, req.year, W/2-2.5, H-1.55, 5.0, 0.6, font="Calibri", size=13,
+            bold=True, color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# TABLE OF CONTENTS / PLAN
-# ══════════════════════════════════════════════════════════════════════
-def make_plan(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# INTRO
+# ══════════════════════════════════════════════════════════════
+def make_intro(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "خطة البحث", f"يتكون البحث من {len(req.chapters)} فصول")
+    _bg_canvas(slide, T, 'split')
+    _section_header(slide, T, "مقدمة البحث", "نظرة عامة على الدراسة", style=0)
 
-    content_y = 3.1
-    avail_h = H - content_y - 0.6
-    max_ch = 8
-    chapters = req.chapters[:max_ch]
-    ch_h = avail_h / max(len(chapters), 1)
-    row_h = min(ch_h, 1.5) - 0.12
+    cy = 3.4
+    items = []
+    if req.intro_overview: items.append(("📖", "نظرة عامة", req.intro_overview))
+    if req.intro_approach:  items.append(("🔬", "المنهج المتبع", req.intro_approach))
+
+    avail_h = H-cy-0.7
+    n = max(len(items), 1)
+    col_w = (W-2.6-0.3*(n-1)) / n
+
+    for i, (icon, lbl, val) in enumerate(items[:2]):
+        x = 1.3 + i*(col_w+0.3)
+        c = rrect(slide, x, cy, col_w, avail_h, T.card_rgb, radius_pct=12)
+        if c:
+            multi_stop_gradient(c, [(0,T.card),(60,T.bg2),(100,T.bg)], angle=150)
+            shadow(c, blur=18, dist=5, alpha=0.4)
+        tp = rrect(slide, x, cy, col_w, 0.32, T.accent_rgb, radius_pct=0)
+        if tp: multi_stop_gradient(tp, [(0,T.accent),(100,T.accent2)], 0)
+
+        icon_circle(slide, x+col_w/2-1.0, cy+0.5, 2.0,
+                    T.accent_grad1, T.accent_grad2, icon, icon_size=22, T=T)
+
+        txt(slide, lbl, x+0.3, cy+2.65, col_w-0.6, 0.75,
+            font=_FONT, size=14, bold=True, color=T.accent_rgb,
+            align=PP_ALIGN.CENTER, rtl=True)
+        hline(slide, x+col_w*0.15, cy+3.45, col_w*0.7, T.accent_rgb, thickness=0.04)
+        txt(slide, val, x+0.3, cy+3.6, col_w-0.6, avail_h-4.0,
+            font=_FONT, size=11.5, bold=False, color=T.text_light_rgb,
+            align=PP_ALIGN.RIGHT, rtl=True)
+
+    slide_number(slide, 1, 13, T)
+    return slide
+
+# ══════════════════════════════════════════════════════════════
+# PLAN
+# ══════════════════════════════════════════════════════════════
+def make_plan(prs, req: PresentationRequest, T: Theme):
+    slide = blank_slide(prs)
+    _bg_canvas(slide, T, 'default')
+    _section_header(slide, T, "خطة البحث",
+                    f"يتكون البحث من {len(req.chapters)} فصول", style=1)
+
+    cy = 3.2
+    chapters = req.chapters[:8]
+    avail_h = H-cy-0.6
+    row_h = min(avail_h/max(len(chapters),1)-0.12, 1.65)
 
     for i, ch in enumerate(chapters):
-        y = content_y + i * (row_h + 0.12)
-        row_bg = rrect(slide, 1.2, y, W - 2.4, row_h, T.card_rgb, radius_pct=8)
-        if row_bg:
-            shadow(row_bg, blur=8, dist=2, alpha=0.25)
+        y = cy + i*(row_h+0.12)
+        even = i%2==0
+        row = rrect(slide, 1.3, y, W-2.6, row_h,
+                    T.card_rgb if even else T.bg2_rgb, radius_pct=9)
+        if row:
+            stops = [(0,T.card),(100,T.bg2)] if even else [(0,T.bg2),(100,T.card)]
+            multi_stop_gradient(row, stops, angle=0 if even else 180)
+            shadow(row, blur=7, dist=2, alpha=0.22)
 
-        # Number badge
-        num_badge = oval(slide, 1.5, y + (row_h - 0.7) / 2, 0.7, 0.7, T.accent_rgb)
-        if num_badge:
-            gradient_fill(num_badge, T.accent_grad1, T.accent_grad2, 0)
-        txt(slide, str(i + 1), 1.5, y + (row_h - 0.7) / 2, 0.7, 0.7,
-            font="Calibri", size=11, bold=True,
-            color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False)
+        num_y = y+(row_h-0.75)/2
+        nc = oval(slide, W-3.2, num_y, 0.75, 0.75, T.accent_rgb)
+        if nc:
+            multi_stop_gradient(nc, [(0,T.accent),(100,T.accent2)], 135)
+            shadow(nc, blur=8, dist=2, alpha=0.3)
+        txt(slide, str(i+1), W-3.2, num_y, 0.75, 0.75, font="Calibri", size=12,
+            bold=True, color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
-        # Chapter title
-        txt(slide, ch.title, 2.5, y, W - 5.8, row_h,
-            font=_FONT, size=13, bold=False,
-            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        txt(slide, ch.title, 1.6, y, W-5.3, row_h, font=_FONT, size=13.5,
+            bold=False, color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
-        # Pages if provided
         if ch.pages:
-            txt(slide, ch.pages, W - 3.8, y, 2.4, row_h,
-                font="Calibri", size=10, bold=False,
-                color=T.muted_rgb, align=PP_ALIGN.LEFT, rtl=False)
+            pg = rrect(slide, 1.5, y+(row_h-0.42)/2, 1.8, 0.42, T.bg_rgb, radius_pct=40)
+            if pg: set_solid_alpha(pg, 60)
+            txt(slide, ch.pages, 1.5, y+(row_h-0.42)/2, 1.8, 0.42,
+                font="Calibri", size=9, bold=False, color=T.muted_rgb,
+                align=PP_ALIGN.CENTER, rtl=False)
 
+    slide_number(slide, 2, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# PROBLEM SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_problem(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# PROBLEM
+# ══════════════════════════════════════════════════════════════
+def make_problem(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "إشكالية البحث", "التساؤلات الرئيسية والفرعية")
+    _bg_canvas(slide, T, 'geometric')
+    _section_header(slide, T, "إشكالية البحث", "التساؤلات الرئيسية والفرعية", style=0)
 
-    content_y = 3.1
-    cur_y = content_y
-
+    cy = 3.4
     if req.main_problem:
-        card = rrect(slide, 1.2, cur_y, W - 2.4, 2.0, T.card_rgb, radius_pct=10)
-        if card:
-            shadow(card, blur=12, dist=4, alpha=0.35)
-        lbl = rrect(slide, 1.2, cur_y, 3.8, 0.55, T.accent_rgb, radius_pct=0)
-        if lbl:
-            gradient_fill(lbl, T.accent_grad1, T.accent_grad2, angle=0)
-        txt(slide, "الإشكالية الرئيسية", 1.3, cur_y, 3.6, 0.55,
-            font=_FONT, size=11, bold=True,
-            color=T.text_dark_rgb, align=PP_ALIGN.RIGHT, rtl=True)
-        txt(slide, req.main_problem, 1.4, cur_y + 0.62, W - 2.8, 1.3,
-            font=_FONT, size=12, bold=False,
-            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
-        cur_y += 2.15
+        ph = 2.6
+        pc = rrect(slide, 1.3, cy, W-2.6, ph, T.card_rgb, radius_pct=12)
+        if pc:
+            multi_stop_gradient(pc, [(0,T.card),(100,T.bg2)], 135)
+            shadow(pc, blur=20, dist=6, alpha=0.45)
+            glow(pc, T.accent.lstrip('#'), radius=25, alpha=0.12)
+        lb = rrect(slide, W-7.0, cy, 5.5, 0.55, T.accent_rgb, radius_pct=0)
+        if lb: multi_stop_gradient(lb, [(0,T.accent),(100,T.accent2)], 0)
+        txt(slide, "◆ الإشكالية الرئيسية", W-7.0, cy, 5.5, 0.55, font=_FONT,
+            size=11, bold=True, color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=True)
+        txt(slide, "❝", 1.6, cy+0.65, 1.5, 1.2, font="Calibri", size=34,
+            bold=False, color=T.accent_rgb, align=PP_ALIGN.LEFT, rtl=False)
+        txt(slide, req.main_problem, 3.2, cy+0.65, W-5.0, ph-0.85,
+            font=_FONT, size=12.5, bold=False, color=T.text_light_rgb,
+            align=PP_ALIGN.RIGHT, rtl=True)
+        cy += ph+0.25
 
     if req.main_question:
-        q_card = rrect(slide, 1.2, cur_y, W - 2.4, 1.5, T.bg2_rgb, radius_pct=8)
-        if q_card:
-            shadow(q_card, blur=8, dist=3, alpha=0.2)
-        hline(slide, 1.2, cur_y, 0.3, T.accent_rgb, thickness=1.5)
-        txt(slide, req.main_question, 1.7, cur_y, W - 3.2, 1.5,
-            font=_FONT, size=12.5, bold=True, italic=True,
-            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
-        cur_y += 1.65
+        qh = 1.7
+        qc = rrect(slide, 1.3, cy, W-2.6, qh, T.bg2_rgb, radius_pct=10)
+        if qc: shadow(qc, blur=10, dist=3, alpha=0.3)
+        vline(slide, W-1.55, cy, qh, T.accent_rgb, thickness=0.25)
+        dot = oval(slide, W-3.5, cy+qh/2-0.22, 0.44, 0.44, T.accent_rgb)
+        if dot: multi_stop_gradient(dot, [(0,T.accent),(100,T.accent2)], 135)
+        txt(slide, req.main_question, 1.6, cy, W-4.0, qh, font=_FONT,
+            size=12.5, bold=True, italic=True, color=T.text_light_rgb,
+            align=PP_ALIGN.RIGHT, rtl=True)
+        cy += qh+0.2
 
     if req.sub_questions:
-        avail = H - cur_y - 0.5
-        sub_h = min(avail / max(len(req.sub_questions), 1), 0.9)
+        avail = H-cy-0.4
+        sub_h = min(avail/max(len(req.sub_questions),1), 0.95)
         for i, q in enumerate(req.sub_questions[:6]):
-            y = cur_y + i * sub_h
-            dot = oval(slide, W - 2.6, y + sub_h * 0.3, 0.28, 0.28, T.accent_rgb)
-            txt(slide, q, 1.2, y, W - 3.2, sub_h,
-                font=_FONT, size=11, bold=False,
-                color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+            y = cy+i*sub_h
+            nc = oval(slide, W-2.8, y+(sub_h-0.38)/2, 0.38, 0.38, T.accent_rgb)
+            if nc: set_solid_alpha(nc, 70)
+            txt(slide, str(i+1), W-2.8, y+(sub_h-0.38)/2, 0.38, 0.38,
+                font="Calibri", size=8, bold=True, color=T.accent_rgb,
+                align=PP_ALIGN.CENTER, rtl=False)
+            txt(slide, q, 1.6, y, W-3.6, sub_h, font=_FONT, size=11,
+                bold=False, color=T.muted_rgb, align=PP_ALIGN.RIGHT, rtl=True)
 
+    slide_number(slide, 3, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# OBJECTIVES SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_objectives(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# OBJECTIVES
+# ══════════════════════════════════════════════════════════════
+def make_objectives(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "أهداف البحث وفرضياته", "")
+    _bg_canvas(slide, T, 'split')
+    _section_header(slide, T, "أهداف البحث وفرضياته", "", style=1)
 
-    content_y = 3.1
-    col_w = (W - 2.8) / 2
-    gap = 0.3
-
+    cy = 3.3
     cols = []
-    if req.objectives:
-        cols.append(("الأهداف", req.objectives))
-    if req.hypotheses:
-        cols.append(("الفرضيات", req.hypotheses))
+    if req.objectives: cols.append(("🎯 الأهداف", req.objectives))
+    if req.hypotheses:  cols.append(("💡 الفرضيات", req.hypotheses))
+    if not cols: return slide
+
+    col_w = (W-2.6-0.35*(len(cols)-1)) / len(cols)
+    avail_h = H-cy-0.6
 
     for i, (lbl, items) in enumerate(cols[:2]):
-        x = 1.2 + i * (col_w + gap)
-        card = rrect(slide, x, content_y, col_w, H - content_y - 0.6, T.card_rgb, radius_pct=10)
-        if card:
-            shadow(card, blur=14, dist=4, alpha=0.35)
-        # Header
-        hdr = rrect(slide, x, content_y, col_w, 0.65, T.accent_rgb, radius_pct=0)
-        if hdr:
-            gradient_fill(hdr, T.accent_grad1, T.accent_grad2, 0)
-        txt(slide, lbl, x + 0.15, content_y, col_w - 0.3, 0.65,
-            font=_FONT, size=14, bold=True,
-            color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=True)
+        x = 1.3+i*(col_w+0.35)
+        c = rrect(slide, x, cy, col_w, avail_h, T.card_rgb, radius_pct=12)
+        if c:
+            multi_stop_gradient(c, [(0,T.card),(100,T.bg2)], 150)
+            shadow(c, blur=18, dist=5, alpha=0.4)
+        hdr = rrect(slide, x, cy, col_w, 0.75, T.accent_rgb, radius_pct=0)
+        if hdr: multi_stop_gradient(hdr, [(0,T.accent2),(100,T.accent)], 0)
+        txt(slide, lbl, x+0.2, cy, col_w-0.4, 0.75, font=_FONT, size=14,
+            bold=True, color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=True)
 
-        # Items
-        avail_h = H - content_y - 1.5
-        item_h = min(avail_h / max(len(items), 1), 1.1)
-        for j, item in enumerate(items[:7]):
-            iy = content_y + 0.75 + j * item_h
-            num = oval(slide, x + col_w - 0.9, iy + 0.05, 0.5, 0.5, T.bg_rgb)
-            txt(slide, str(j + 1), x + col_w - 0.9, iy + 0.05, 0.5, 0.5,
-                font="Calibri", size=9, bold=True,
-                color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
-            txt(slide, item, x + 0.2, iy, col_w - 1.2, item_h,
-                font=_FONT, size=10.5, bold=False,
-                color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        item_avail = avail_h-0.9
+        item_h = min(item_avail/max(len(items),1), 1.2)-0.1
 
+        for j, item in enumerate(items[:8]):
+            iy = cy+0.88+j*(item_h+0.1)
+            if iy+item_h > H-0.5: break
+            rb = rrect(slide, x+0.15, iy, col_w-0.3, item_h,
+                       T.bg2_rgb if j%2==0 else T.bg_rgb, radius_pct=7)
+            if rb: set_solid_alpha(rb, 80)
+            number_badge(slide, x+col_w-0.85, iy+(item_h-0.55)/2, 0.55, j+1, T)
+            txt(slide, item, x+0.28, iy+0.06, col_w-1.35, item_h-0.12,
+                font=_FONT, size=10.5, bold=False, color=T.text_light_rgb,
+                align=PP_ALIGN.RIGHT, rtl=True)
+
+    slide_number(slide, 4, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# IMPORTANCE SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_importance(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# IMPORTANCE
+# ══════════════════════════════════════════════════════════════
+def make_importance(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "أهمية البحث", "")
+    _bg_canvas(slide, T, 'geometric')
+    _section_header(slide, T, "أهمية البحث", "الأثر والقيمة المضافة", style=0)
 
-    content_y = 3.1
-    items = req.importance[:6] if req.importance else []
-    if req.reasons and len(items) < 6:
-        items.append(req.reasons)
+    cy = 3.3
+    items = (req.importance or [])[:6]
+    if not items: return slide
 
-    if not items:
-        return slide
-
+    icons = ["⭐","🔑","📌","🌟","💎","🏆"]
     cols = 2 if len(items) > 3 else 1
-    col_w = (W - 2.4 - (cols - 1) * 0.3) / cols
-    rows = (len(items) + cols - 1) // cols
-    avail_h = H - content_y - 0.5
-    card_h = min(avail_h / rows - 0.2, 2.0)
+    col_w = (W-2.6-0.3*(cols-1)) / cols
+    rows = (len(items)+cols-1)//cols
+    avail_h = H-cy-0.5
+    card_h = min(avail_h/rows-0.2, 2.4)
 
     for i, item in enumerate(items):
-        col_idx = i % cols
-        row_idx = i // cols
-        x = 1.2 + col_idx * (col_w + 0.3)
-        y = content_y + row_idx * (card_h + 0.2)
+        ci = i%cols; ri = i//cols
+        x = 1.3+ci*(col_w+0.3)
+        y = cy+ri*(card_h+0.2)
 
-        card = rrect(slide, x, y, col_w, card_h, T.card_rgb, radius_pct=10)
-        if card:
-            shadow(card, blur=10, dist=3, alpha=0.3)
-        # Left accent
-        vline(slide, x, y, card_h, T.accent_rgb, thickness=0.2)
+        c = card_3d(slide, x, y, col_w, card_h, T, radius=10)
+        acc = rrect(slide, x+col_w-0.3, y, 0.3, card_h, T.accent_rgb, radius_pct=0)
+        if acc: multi_stop_gradient(acc, [(0,T.accent2),(100,T.accent)], 90)
 
-        txt(slide, item, x + 0.4, y + 0.12, col_w - 0.6, card_h - 0.24,
-            font=_FONT, size=11.5, bold=False,
-            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        icon_circle(slide, x+0.25, y+(card_h-1.3)/2, 1.3,
+                    T.accent_grad1, T.accent_grad2,
+                    icons[i%len(icons)], icon_size=18, T=T)
 
+        txt(slide, item, x+1.75, y+0.15, col_w-2.35, card_h-0.3,
+            font=_FONT, size=11.5, bold=False, color=T.text_light_rgb,
+            align=PP_ALIGN.RIGHT, rtl=True)
+
+    slide_number(slide, 5, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# METHODOLOGY SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_methodology(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# METHODOLOGY
+# ══════════════════════════════════════════════════════════════
+def make_methodology(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "منهجية البحث", "الإجراءات والأدوات")
+    _bg_canvas(slide, T, 'radial')
+    _section_header(slide, T, "منهجية البحث", "الإجراءات والأدوات المستخدمة", style=1)
 
-    content_y = 3.1
+    cy = 3.3
+    icons_map = {"المنهج":"📊","العينة":"👥","حجم العينة":"📏","الأداة":"🛠️"}
     fields = []
-    if req.methodology:
-        fields.append(("المنهج", req.methodology))
-    if req.sample_type:
-        fields.append(("العينة", req.sample_type))
-    if req.sample_size:
-        fields.append(("حجم العينة", req.sample_size))
-    if req.tool:
-        fields.append(("الأداة", req.tool))
+    if req.methodology: fields.append(("المنهج", req.methodology))
+    if req.sample_type:  fields.append(("العينة", req.sample_type))
+    if req.sample_size:  fields.append(("حجم العينة", req.sample_size))
+    if req.tool:         fields.append(("الأداة", req.tool))
 
-    cols = 2 if len(fields) > 2 else 1
-    col_w = (W - 2.4 - (cols - 1) * 0.3) / cols
-    rows = (len(fields) + cols - 1) // cols
-    avail_h = H - content_y - 0.5
-    card_h = min(avail_h / rows - 0.2, 2.2)
+    cols = 2 if len(fields)>2 else len(fields)
+    col_w = (W-2.6-0.3*(cols-1)) / max(cols,1)
+    rows = (len(fields)+cols-1)//cols
+    avail_h = H-cy-0.5
+    card_h = min(avail_h/rows-0.2, 3.8)
 
     for i, (lbl, val) in enumerate(fields[:4]):
-        col_idx = i % cols
-        row_idx = i // cols
-        x = 1.2 + col_idx * (col_w + 0.3)
-        y = content_y + row_idx * (card_h + 0.2)
+        ci = i%cols; ri = i//cols
+        x = 1.3+ci*(col_w+0.3)
+        y = cy+ri*(card_h+0.2)
 
-        card = rrect(slide, x, y, col_w, card_h, T.card_rgb, radius_pct=10)
-        if card:
-            shadow(card, blur=10, dist=3, alpha=0.3)
+        c = rrect(slide, x, y, col_w, card_h, T.card_rgb, radius_pct=12)
+        if c:
+            multi_stop_gradient(c, [(0,T.card),(100,T.bg2)], angle=145)
+            shadow(c, blur=16, dist=5, alpha=0.42)
 
-        lbl_card = rrect(slide, x, y, col_w, 0.55, T.accent_rgb, radius_pct=0)
-        if lbl_card:
-            gradient_fill(lbl_card, T.accent_grad1, T.accent_grad2, 0)
-        txt(slide, lbl, x + 0.2, y, col_w - 0.4, 0.55,
-            font=_FONT, size=12, bold=True,
-            color=T.text_dark_rgb, align=PP_ALIGN.RIGHT, rtl=True)
-        txt(slide, val, x + 0.2, y + 0.62, col_w - 0.4, card_h - 0.75,
-            font=_FONT, size=11.5, bold=False,
-            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        ic_x = x+col_w/2-1.1
+        ic = oval(slide, ic_x, y+0.35, 2.2, 2.2, T.accent_rgb)
+        if ic:
+            multi_stop_gradient(ic, [(0,T.accent),(100,T.accent2)], 135)
+            shadow(ic, blur=12, dist=3, alpha=0.35)
+            glow(ic, T.accent.lstrip('#'), radius=18, alpha=0.2)
+        txt(slide, icons_map.get(lbl,"📌"), ic_x, y+0.45, 2.2, 1.9,
+            font="Calibri", size=24, bold=False, color=T.text_dark_rgb,
+            align=PP_ALIGN.CENTER, rtl=False)
 
+        txt(slide, lbl, x+0.25, y+2.68, col_w-0.5, 0.72, font=_FONT,
+            size=13, bold=True, color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=True)
+        hline(slide, x+col_w*0.15, y+3.45, col_w*0.7, T.muted_rgb, thickness=0.04)
+        txt(slide, val, x+0.25, y+3.58, col_w-0.5, card_h-3.75,
+            font=_FONT, size=11, bold=False, color=T.text_light_rgb,
+            align=PP_ALIGN.CENTER, rtl=True)
+
+    slide_number(slide, 6, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# KPI / STATS SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_stats(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# STATS
+# ══════════════════════════════════════════════════════════════
+def make_stats(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "الإحصاءات والأرقام الرئيسية", "")
+    _bg_canvas(slide, T, 'default')
+    _section_header(slide, T, "الأرقام والإحصاءات الرئيسية", "", style=0)
 
-    content_y = 3.1
+    cy = 3.3
     stats = req.stats[:6]
-    n = len(stats)
-    if n == 0:
-        return slide
+    if not stats: return slide
 
-    cols = 3 if n >= 3 else n
-    rows = (n + cols - 1) // cols
+    cols = 3 if len(stats)>=3 else len(stats)
+    rows = (len(stats)+cols-1)//cols
     gap = 0.3
-    card_w = (W - 2.4 - (cols - 1) * gap) / cols
-    avail_h = H - content_y - 0.5
-    card_h = min(avail_h / rows - gap, 3.5)
+    col_w = (W-2.6-gap*(cols-1)) / cols
+    avail_h = H-cy-0.5
+    card_h = min(avail_h/rows-gap, 4.2)
 
     for i, stat in enumerate(stats):
-        col_idx = i % cols
-        row_idx = i // cols
-        x = 1.2 + col_idx * (card_w + gap)
-        y = content_y + row_idx * (card_h + gap)
+        ci = i%cols; ri = i//cols
+        x = 1.3+ci*(col_w+gap)
+        y = cy+ri*(card_h+gap)
 
-        # Card
-        card = rrect(slide, x, y, card_w, card_h, T.card_rgb, radius_pct=12)
-        if card:
-            shadow(card, blur=14, dist=5, alpha=0.4)
+        c = rrect(slide, x, y, col_w, card_h, T.card_rgb, radius_pct=14)
+        if c:
+            multi_stop_gradient(c, [(0,T.bg2),(50,T.card),(100,T.bg2)], angle=135)
+            shadow(c, blur=20, dist=6, alpha=0.45)
 
-        # Top accent band
-        band = rrect(slide, x, y, card_w, 0.22, T.accent_rgb, radius_pct=0)
-        if band:
-            gradient_fill(band, T.accent_grad1, T.accent_grad2, 0)
+        tp = rrect(slide, x, y, col_w, 0.35, T.accent_rgb, radius_pct=0)
+        if tp:
+            multi_stop_gradient(tp, [(0,T.accent2),(50,T.accent),(100,T.accent2)], 0)
+            glow(tp, T.accent.lstrip('#'), radius=12, alpha=0.3)
 
-        # Value (big)
-        val_size = 32 if len(stat.value) <= 4 else 24 if len(stat.value) <= 8 else 18
-        txt(slide, stat.value, x + 0.2, y + 0.4, card_w - 0.4, card_h * 0.52,
-            font="Calibri", size=val_size, bold=True,
-            color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
+        bp = rrect(slide, x, y+card_h-0.25, col_w, 0.25, T.accent_rgb, radius_pct=0)
+        if bp: set_solid_alpha(bp, 40)
 
-        # Unit
+        vs = 38 if len(stat.value)<=4 else 28 if len(stat.value)<=8 else 20
+        txt(slide, stat.value, x+0.2, y+0.5, col_w-0.4, card_h*0.5,
+            font="Calibri", size=vs, bold=True, color=T.accent_rgb,
+            align=PP_ALIGN.CENTER, rtl=False)
+
         if stat.unit:
-            txt(slide, stat.unit, x + 0.2, y + card_h * 0.52 + 0.3,
-                card_w - 0.4, 0.5,
-                font=_FONT, size=10, bold=False,
-                color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
+            ub = rrect(slide, x+col_w/2-1.5, y+card_h*0.52+0.15, 3.0, 0.5,
+                       T.bg_rgb, radius_pct=40)
+            if ub: set_solid_alpha(ub, 60)
+            txt(slide, stat.unit, x+col_w/2-1.5, y+card_h*0.52+0.15, 3.0, 0.5,
+                font=_FONT, size=10, bold=False, color=T.muted_rgb,
+                align=PP_ALIGN.CENTER, rtl=True)
 
-        # Label
-        txt(slide, stat.label, x + 0.2, y + card_h - 0.8, card_w - 0.4, 0.7,
-            font=_FONT, size=11, bold=False,
-            color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
+        hline(slide, x+col_w*0.15, y+card_h*0.68, col_w*0.7, T.muted_rgb, thickness=0.04)
+        txt(slide, stat.label, x+0.2, y+card_h*0.7, col_w-0.4, card_h*0.27,
+            font=_FONT, size=11, bold=False, color=T.text_light_rgb,
+            align=PP_ALIGN.CENTER, rtl=True)
 
+    slide_number(slide, 7, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# RESULTS SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_results(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# RESULTS
+# ══════════════════════════════════════════════════════════════
+def make_results(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "نتائج البحث", "أبرز ما توصلت إليه الدراسة")
+    _bg_canvas(slide, T, 'split')
+    _section_header(slide, T, "نتائج البحث", "أبرز ما توصلت إليه الدراسة", style=1)
 
-    content_y = 3.1
+    cy = 3.2
     results = req.main_results[:8]
-    avail_h = H - content_y - 0.5
-    item_h = min(avail_h / max(len(results), 1), 1.4) - 0.12
+    avail_h = H-cy-0.5
+    item_h = min(avail_h/max(len(results),1)-0.12, 1.55)
 
     for i, result in enumerate(results):
-        y = content_y + i * (item_h + 0.12)
-        row_bg = rrect(slide, 1.2, y, W - 2.4, item_h, T.card_rgb, radius_pct=8)
-        if row_bg:
-            shadow(row_bg, blur=6, dist=2, alpha=0.2)
+        y = cy+i*(item_h+0.12)
+        even = i%2==0
+        c = rrect(slide, 1.3, y, W-2.6, item_h,
+                  T.card_rgb if even else T.bg2_rgb, radius_pct=9)
+        if c:
+            stops = [(0,T.card),(100,T.bg2)] if even else [(0,T.bg2),(100,T.card)]
+            multi_stop_gradient(c, stops, angle=0)
+            shadow(c, blur=6, dist=2, alpha=0.2)
 
-        # Number badge
-        badge = rrect(slide, W - 3.0, y + (item_h - 0.58) / 2, 1.5, 0.58,
-                      T.accent_rgb, radius_pct=50)
-        if badge:
-            gradient_fill(badge, T.accent_grad1, T.accent_grad2, 0)
-        txt(slide, str(i + 1), W - 3.0, y + (item_h - 0.58) / 2, 1.5, 0.58,
-            font="Calibri", size=11, bold=True,
-            color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False)
+        acc = rrect(slide, W-1.55, y, 0.22, item_h, T.accent_rgb, radius_pct=0)
+        if acc:
+            gradient_fill(acc, T.accent_grad1, T.accent_grad2, 90)
+            set_solid_alpha(acc, max(20, 60-i*8))
 
-        txt(slide, result, 1.5, y + 0.1, W - 5.0, item_h - 0.2,
-            font=_FONT, size=11.5, bold=False,
-            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        number_badge(slide, W-3.1, y+(item_h-0.6)/2, 0.6, i+1, T)
 
+        txt(slide, result, 1.55, y+0.1, W-5.1, item_h-0.2,
+            font=_FONT, size=12, bold=False, color=T.text_light_rgb,
+            align=PP_ALIGN.RIGHT, rtl=True)
+
+    slide_number(slide, 8, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# CONCLUSION SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_conclusion(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# CONCLUSION
+# ══════════════════════════════════════════════════════════════
+def make_conclusion(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "خاتمة البحث", "الاستنتاج العام")
+    _bg_canvas(slide, T, 'radial')
+    _section_header(slide, T, "خاتمة البحث", "الاستنتاج العام", style=0)
 
-    # Large centered card
-    card_y = 3.1
-    card_h = H - card_y - 0.8
-    card = rrect(slide, 1.5, card_y, W - 3.0, card_h, T.card_rgb, radius_pct=14)
-    if card:
-        shadow(card, blur=20, dist=6, alpha=0.4)
+    card_y = 3.3; card_h = H-card_y-0.7; cw = W-3.0
+    c = rrect(slide, 1.5, card_y, cw, card_h, T.card_rgb, radius_pct=16)
+    if c:
+        multi_stop_gradient(c, [(0,T.card),(50,T.bg2),(100,T.card)], angle=135)
+        shadow(c, blur=28, dist=8, alpha=0.5)
+        glow(c, T.accent.lstrip('#'), radius=30, alpha=0.1)
 
-    # Top accent
-    top_stripe = rrect(slide, 1.5, card_y, W - 3.0, 0.28, T.accent_rgb, radius_pct=0)
-    if top_stripe:
-        gradient_fill(top_stripe, T.accent_grad1, T.accent_grad2, 0)
+    tp = rrect(slide, 1.5, card_y, cw, 0.38, T.accent_rgb, radius_pct=0)
+    if tp:
+        multi_stop_gradient(tp, [(0,T.accent2),(50,T.accent),(100,T.accent2)], 0)
+        glow(tp, T.accent.lstrip('#'), radius=15, alpha=0.35)
 
-    # Quote mark decoration
-    txt(slide, "❝", 2.5, card_y + 0.4, 1.5, 1.5,
-        font="Calibri", size=40, bold=False,
-        color=T.accent_rgb, align=PP_ALIGN.LEFT, rtl=False)
+    diamond(slide, 1.8, card_y+0.55, 1.2, 1.2, T.accent_rgb, alpha=15)
+    diamond(slide, W-3.2, card_y+card_h-1.8, 1.0, 1.0, T.accent_rgb, alpha=10)
 
-    txt(slide, req.general_conclusion,
-        2.0, card_y + 1.0, W - 4.5, card_h - 1.5,
-        font=_FONT, size=14, bold=False,
-        color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+    txt(slide, "❝", 2.2, card_y+0.5, 2.0, 1.8, font="Calibri", size=52,
+        bold=False, color=T.accent_rgb, align=PP_ALIGN.LEFT, rtl=False)
+    txt(slide, req.general_conclusion, 2.2, card_y+1.4, cw-1.4, card_h-2.2,
+        font=_FONT, size=14.5, bold=False, color=T.text_light_rgb,
+        align=PP_ALIGN.RIGHT, rtl=True)
 
+    div_y = card_y+card_h-1.2
+    hl = rect(slide, 1.5+cw*0.2, div_y, cw*0.6, 0.06, T.accent_rgb)
+    if hl: multi_stop_gradient(hl, [(0,T.bg2),(50,T.accent),(100,T.bg2)], 0)
+    txt(slide, req.student_name, 1.5, div_y+0.15, cw, 0.78,
+        font=_FONT, size=14, bold=True, color=T.accent_rgb,
+        align=PP_ALIGN.CENTER, rtl=True)
+
+    slide_number(slide, 9, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# RECOMMENDATIONS SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_recommendations(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# RECOMMENDATIONS
+# ══════════════════════════════════════════════════════════════
+def make_recommendations(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "توصيات البحث", "")
+    _bg_canvas(slide, T, 'geometric')
+    _section_header(slide, T, "توصيات البحث", "", style=1)
 
-    content_y = 3.1
+    cy = 3.2
     recs = req.recommendations[:8]
-    avail_h = H - content_y - 0.5
-    item_h = min(avail_h / max(len(recs), 1), 1.4) - 0.1
+    avail_h = H-cy-0.5
+    item_h = min(avail_h/max(len(recs),1)-0.12, 1.5)
 
     for i, rec in enumerate(recs):
-        y = content_y + i * (item_h + 0.1)
-        row_bg = rrect(slide, 1.2, y, W - 2.4, item_h, T.card_rgb, radius_pct=8)
-        if row_bg:
-            shadow(row_bg, blur=6, dist=2, alpha=0.2)
+        y = cy+i*(item_h+0.12)
+        c = rrect(slide, 1.3, y, W-2.6, item_h, T.card_rgb, radius_pct=10)
+        if c:
+            multi_stop_gradient(c, [(0,T.card),(100,T.bg2)], angle=0)
+            shadow(c, blur=8, dist=2, alpha=0.25)
 
-        # Bullet accent
-        dot = oval(slide, W - 2.4, y + (item_h - 0.32) / 2, 0.32, 0.32, T.accent_rgb)
+        dot = oval(slide, W-1.8, y+(item_h-0.42)/2, 0.42, 0.42, T.accent_rgb)
+        if dot:
+            multi_stop_gradient(dot, [(0,T.accent),(100,T.accent2)], 135)
+            shadow(dot, blur=6, dist=1, alpha=0.3)
 
-        txt(slide, rec, 1.5, y + 0.08, W - 3.2, item_h - 0.16,
-            font=_FONT, size=11.5, bold=False,
-            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        acc = rect(slide, W-1.55, y, 0.2, item_h, T.accent_rgb)
+        if acc: gradient_fill(acc, T.accent_grad1, T.accent_grad2, 90)
 
+        txt(slide, rec, 1.55, y+0.1, W-3.5, item_h-0.2,
+            font=_FONT, size=11.5, bold=False, color=T.text_light_rgb,
+            align=PP_ALIGN.RIGHT, rtl=True)
+
+    slide_number(slide, 10, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# FUTURE WORK SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_future(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# FUTURE
+# ══════════════════════════════════════════════════════════════
+def make_future(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "آفاق البحث المستقبلية", "")
+    _bg_canvas(slide, T, 'default')
+    _section_header(slide, T, "آفاق البحث المستقبلية", "", style=0)
 
-    content_y = 3.1
+    cy = 3.3
     items = req.future_work[:6]
-    cols = 2 if len(items) > 3 else 1
-    col_w = (W - 2.4 - (cols - 1) * 0.3) / cols
-    rows = (len(items) + cols - 1) // cols
-    avail_h = H - content_y - 0.5
-    card_h = min(avail_h / rows - 0.2, 2.2)
+    cols = 2 if len(items)>3 else 1
+    col_w = (W-2.6-0.3*(cols-1)) / cols
+    rows = (len(items)+cols-1)//cols
+    avail_h = H-cy-0.5
+    card_h = min(avail_h/rows-0.2, 3.5)
 
     for i, item in enumerate(items):
-        col_idx = i % cols
-        row_idx = i // cols
-        x = 1.2 + col_idx * (col_w + 0.3)
-        y = content_y + row_idx * (card_h + 0.2)
+        ci = i%cols; ri = i//cols
+        x = 1.3+ci*(col_w+0.3)
+        y = cy+ri*(card_h+0.2)
 
-        card = rrect(slide, x, y, col_w, card_h, T.card_rgb, radius_pct=10)
-        if card:
-            shadow(card, blur=10, dist=3, alpha=0.3)
+        c = rrect(slide, x, y, col_w, card_h, T.card_rgb, radius_pct=12)
+        if c:
+            multi_stop_gradient(c, [(0,T.card),(70,T.bg2),(100,T.bg)], angle=160)
+            shadow(c, blur=16, dist=4, alpha=0.38)
 
-        # Icon area
-        icon_card = rrect(slide, x, y, 0.6, card_h, T.accent_rgb, radius_pct=0)
-        if icon_card:
-            gradient_fill(icon_card, T.accent_grad1, T.accent_grad2, 90)
+        tp = rrect(slide, x, y, col_w, 0.3, T.accent_rgb, radius_pct=0)
+        if tp: multi_stop_gradient(tp, [(0,T.accent),(100,T.accent2)], 0)
 
-        txt(slide, item, x + 0.75, y + 0.15, col_w - 0.95, card_h - 0.3,
-            font=_FONT, size=11.5, bold=False,
-            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        number_badge(slide, x+col_w/2-0.45, y+0.45, 0.9, i+1, T)
+        hline(slide, x+col_w*0.2, y+1.5, col_w*0.6, T.muted_rgb, thickness=0.04)
+        txt(slide, item, x+0.3, y+1.65, col_w-0.6, card_h-1.85,
+            font=_FONT, size=12, bold=False, color=T.text_light_rgb,
+            align=PP_ALIGN.CENTER, rtl=True)
 
+    slide_number(slide, 11, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# REFERENCES SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_references(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# REFERENCES
+# ══════════════════════════════════════════════════════════════
+def make_references(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
-    bg(slide, T.bg_rgb)
-    _section_header(slide, T, "المراجع والمصادر", "")
+    _bg_canvas(slide, T, 'split')
+    _section_header(slide, T, "قائمة المراجع والمصادر", "", style=1)
 
-    content_y = 3.1
+    cy = 3.2
     refs = req.references[:12]
-    avail_h = H - content_y - 0.5
-    item_h = max(min(avail_h / max(len(refs), 1) - 0.1, 1.1), 0.5)
+    avail_h = H-cy-0.4
+    item_h = max(min(avail_h/max(len(refs),1)-0.1, 1.2), 0.55)
 
     for i, ref in enumerate(refs):
-        y = content_y + i * (item_h + 0.1)
-        if y + item_h > H - 0.3:
-            break
-        # Subtle row bg (alternating)
-        if i % 2 == 0:
-            row_bg = rrect(slide, 1.2, y, W - 2.4, item_h, T.card_rgb, radius_pct=4)
+        y = cy+i*(item_h+0.1)
+        if y+item_h > H-0.25: break
+        even = i%2==0
+        c = rrect(slide, 1.3, y, W-2.6, item_h,
+                  T.card_rgb if even else T.bg2_rgb, radius_pct=5)
+        if c:
+            stops = [(0,T.card),(100,T.bg2)] if even else [(0,T.bg2),(100,T.card)]
+            multi_stop_gradient(c, stops, 0)
 
-        # Number
-        txt(slide, f"[{i + 1}]", W - 2.8, y, 1.4, item_h,
-            font="Calibri", size=9, bold=True,
-            color=T.accent_rgb, align=PP_ALIGN.LEFT, rtl=False)
+        acc = rect(slide, W-1.55, y, 0.22, item_h, T.accent_rgb)
+        if acc: set_solid_alpha(acc, 60)
 
-        txt(slide, ref, 1.5, y + 0.04, W - 4.5, item_h - 0.08,
-            font=_FONT, size=10, bold=False,
-            color=T.text_light_rgb, align=PP_ALIGN.RIGHT, rtl=True)
+        nb = rrect(slide, 1.45, y+(item_h-0.42)/2, 0.72, 0.42, T.bg_rgb, radius_pct=40)
+        if nb: set_solid_alpha(nb, 70)
+        txt(slide, f"[{i+1}]", 1.45, y+(item_h-0.42)/2, 0.72, 0.42,
+            font="Calibri", size=9, bold=True, color=T.accent_rgb,
+            align=PP_ALIGN.CENTER, rtl=False)
+        txt(slide, ref, 2.35, y+0.05, W-4.2, item_h-0.1,
+            font=_FONT, size=10.5, bold=False, color=T.text_light_rgb,
+            align=PP_ALIGN.RIGHT, rtl=True)
 
+    slide_number(slide, 12, 13, T)
     return slide
 
-
-# ══════════════════════════════════════════════════════════════════════
-# THANK YOU / FINAL SLIDE
-# ══════════════════════════════════════════════════════════════════════
-def make_final(prs: Presentation, req: PresentationRequest, T: Theme):
+# ══════════════════════════════════════════════════════════════
+# FINAL / THANK YOU
+# ══════════════════════════════════════════════════════════════
+def make_final(prs, req: PresentationRequest, T: Theme):
     slide = blank_slide(prs)
     bg(slide, T.bg_rgb)
-
-    # Full gradient background
     gradient_rect(slide, 0, 0, W, H, T.grad1, T.grad2, angle=135)
 
-    # Decorative circles
-    oval(slide, -3, -3, 12, 12, T.accent_rgb, alpha=6)
-    oval(slide, W - 9, H - 9, 14, 14, T.accent_rgb, alpha=5)
-    oval(slide, W - 5, -2, 8, 8, T.bg2_rgb, alpha=30)
+    oval(slide, -5, -5, 16, 16, T.accent_rgb, alpha=5)
+    oval(slide, W-12, H-12, 18, 18, T.accent_rgb, alpha=4)
+    oval(slide, W-7, -3, 11, 11, T.bg2_rgb, alpha=35)
+    oval(slide, -3, H-7, 10, 10, T.bg2_rgb, alpha=30)
+    diamond(slide, W*0.3, H*0.05, 2.5, 2.5, T.accent_rgb, alpha=8)
+    diamond(slide, W*0.65, H*0.75, 2.0, 2.0, T.accent_rgb, alpha=6)
+    decorative_dots(slide, 1.5, H-5, 7, 3, 0.18, 0.42, T.accent_rgb, alpha=12)
+    decorative_dots(slide, W-6, 1.5, 5, 4, 0.16, 0.38, T.accent_rgb, alpha=10)
 
-    # Center card
-    card_w, card_h = 22, 10
-    card_x = (W - card_w) / 2
-    card_y = (H - card_h) / 2
-    card = rrect(slide, card_x, card_y, card_w, card_h, T.card_rgb, radius_pct=14)
-    if card:
-        shadow(card, blur=24, dist=8, alpha=0.45)
+    cw = 23; ch = 11
+    cx = (W-cw)/2; cy2 = (H-ch)/2
 
-    # Top stripe
-    top_s = rrect(slide, card_x, card_y, card_w, 0.35, T.accent_rgb, radius_pct=0)
-    if top_s:
-        gradient_fill(top_s, T.accent_grad1, T.accent_grad2, 0)
+    c = rrect(slide, cx, cy2, cw, ch, T.card_rgb, radius_pct=16)
+    if c:
+        multi_stop_gradient(c, [(0,T.card),(50,T.bg2),(100,T.card)], angle=135)
+        shadow(c, blur=32, dist=10, alpha=0.55)
+        glow(c, T.accent.lstrip('#'), radius=40, alpha=0.12)
 
-    # Thank you text
-    txt(slide, "شكراً وتقديراً",
-        card_x + 1.0, card_y + 0.6, card_w - 2.0, 2.5,
-        font=_FONT, size=36, bold=True,
-        color=T.text_light_rgb, align=PP_ALIGN.CENTER, rtl=True)
+    tp = rrect(slide, cx, cy2, cw, 0.45, T.accent_rgb, radius_pct=0)
+    if tp:
+        multi_stop_gradient(tp,
+            [(0,T.bg),(30,T.accent2),(50,T.accent),(70,T.accent2),(100,T.bg)], 0)
+        glow(tp, T.accent.lstrip('#'), radius=20, alpha=0.4)
 
-    # Divider
-    hline(slide, card_x + card_w * 0.2, card_y + 3.2, card_w * 0.6, T.accent_rgb, thickness=0.05)
+    bp = rrect(slide, cx, cy2+ch-0.3, cw, 0.3, T.accent_rgb, radius_pct=0)
+    if bp: set_solid_alpha(bp, 50)
 
-    # Name
-    txt(slide, req.student_name,
-        card_x + 1.0, card_y + 3.5, card_w - 2.0, 1.2,
-        font=_FONT, size=18, bold=True,
-        color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=True)
+    txt(slide, "✦", cx+cw/2-0.8, cy2+0.55, 1.6, 1.5, font="Calibri",
+        size=28, bold=False, color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=False)
 
-    # Title (truncated)
-    title_display = req.title_ar[:70] + ("..." if len(req.title_ar) > 70 else "")
-    txt(slide, title_display,
-        card_x + 1.0, card_y + 4.8, card_w - 2.0, 2.0,
-        font=_FONT, size=12, bold=False, italic=True,
-        color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
+    txt(slide, "شكراً وتقديراً", cx+0.8, cy2+1.2, cw-1.6, 2.8,
+        font=_FONT, size=38, bold=True, color=T.text_light_rgb,
+        align=PP_ALIGN.CENTER, rtl=True)
 
-    # Bottom institution + year
-    footer_parts = []
-    if req.institution:
-        footer_parts.append(req.institution)
-    if req.year:
-        footer_parts.append(req.year)
-    if footer_parts:
-        txt(slide, "  ·  ".join(footer_parts),
-            card_x + 1.0, card_y + card_h - 1.0, card_w - 2.0, 0.8,
-            font=_FONT, size=11, bold=False,
-            color=T.muted_rgb, align=PP_ALIGN.CENTER, rtl=True)
+    div_y = cy2+4.2
+    dm = rect(slide, cx+cw*0.15, div_y, cw*0.7, 0.06, T.accent_rgb)
+    if dm: multi_stop_gradient(dm, [(0,T.bg2),(50,T.accent),(100,T.bg2)], 0)
+    rect(slide, cx+cw*0.25, div_y+0.13, cw*0.5, 0.03, T.muted_rgb)
 
-    # Bottom bar
-    bottom_bar = rect(slide, 0, H - 0.25, W, 0.25, T.accent_rgb)
-    if bottom_bar:
-        gradient_fill(bottom_bar, T.accent_grad1, T.accent_grad2, 0)
+    txt(slide, req.student_name, cx+0.8, div_y+0.3, cw-1.6, 1.4,
+        font=_FONT, size=22, bold=True, color=T.accent_rgb,
+        align=PP_ALIGN.CENTER, rtl=True)
+
+    ts = req.title_ar[:72]+("..." if len(req.title_ar)>72 else "")
+    txt(slide, ts, cx+1.2, div_y+1.85, cw-2.4, 2.0,
+        font=_FONT, size=12, bold=False, italic=True, color=T.muted_rgb,
+        align=PP_ALIGN.CENTER, rtl=True)
+
+    footer = []
+    if req.institution: footer.append(req.institution)
+    if req.year: footer.append(req.year)
+    if footer:
+        fb = rrect(slide, cx+cw*0.1, cy2+ch-1.35, cw*0.8, 0.62, T.bg_rgb, radius_pct=40)
+        if fb: set_solid_alpha(fb, 55)
+        txt(slide, "  ·  ".join(footer), cx+0.8, cy2+ch-1.35, cw-1.6, 0.62,
+            font=_FONT, size=11, bold=False, color=T.muted_rgb,
+            align=PP_ALIGN.CENTER, rtl=True)
+
+    bottom = rect(slide, 0, H-0.28, W, 0.28, T.accent_rgb)
+    if bottom:
+        multi_stop_gradient(bottom,
+            [(0,T.bg),(30,T.accent),(70,T.accent2),(100,T.bg)], 0)
 
     return slide
