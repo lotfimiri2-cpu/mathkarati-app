@@ -731,95 +731,6 @@ select{
 /* Bottom bar */
 .slide-bot-bar{height:3%;width:100%}
 
-/* ══ ADAPTIVE SLIDE PREVIEW PANELS ══ */
-.sp-header {
-  background:linear-gradient(135deg, var(--sp-g1,#07172F) 0%, var(--sp-g2,#1A3A6E) 100%);
-  position:relative;overflow:hidden;padding:4% 4% 3% 3%;
-  min-height:27%;display:flex;flex-direction:column;justify-content:flex-end;
-}
-.sp-header::before {
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,var(--sp-ac,#C6A03C) 0,var(--sp-ac,#C6A03C) 2%,transparent 2%);
-}
-.sp-header-circle {
-  position:absolute;right:-8%;top:-40%;width:45%;aspect-ratio:1;border-radius:50%;
-  background:var(--sp-ac,#C6A03C);opacity:.08;
-}
-.sp-header-title {
-  color:#fff;font-weight:900;direction:rtl;text-align:right;
-  font-size:clamp(8px,2vw,15px);line-height:1.2;
-  text-shadow:0 1px 8px rgba(0,0,0,.3);
-  position:relative;z-index:1;
-}
-.sp-header-sub {
-  color:rgba(255,255,255,.5);direction:rtl;text-align:right;
-  font-size:clamp(5px,1.1vw,9px);margin-top:1.5%;
-  position:relative;z-index:1;
-}
-.sp-body { flex:1;padding:3% 4%;display:flex;flex-direction:column;gap:2%;overflow:hidden; }
-/* Card */
-.sp-card {
-  background:var(--sp-card,rgba(255,255,255,.07));
-  border-radius:6px;padding:2.5% 3%;overflow:hidden;
-  border:1px solid rgba(255,255,255,.06);
-  transition:all .3s;
-}
-.sp-card-label {
-  background:var(--sp-ac,#C6A03C);
-  font-size:clamp(5px,0.9vw,8px);font-weight:800;
-  color:var(--sp-td,#07172F);padding:1.5% 3%;
-  margin:-2.5% -3% 2% -3%;direction:rtl;text-align:right;
-}
-.sp-card-val {
-  color:rgba(255,255,255,.85);font-size:clamp(5px,1vw,8px);
-  direction:rtl;text-align:right;line-height:1.4;
-  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-}
-/* Row item */
-.sp-row {
-  display:flex;align-items:center;gap:2.5%;
-  background:var(--sp-card,rgba(255,255,255,.07));
-  border-radius:5px;padding:2% 3%;
-}
-.sp-row-num {
-  width:clamp(12px,2.2vw,18px);height:clamp(12px,2.2vw,18px);
-  border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  background:var(--sp-ac,#C6A03C);color:var(--sp-td,#07172F);
-  font-size:clamp(5px,.9vw,8px);font-weight:900;
-}
-.sp-row-text {
-  color:rgba(255,255,255,.85);font-size:clamp(5px,1vw,8px);
-  direction:rtl;text-align:right;flex:1;
-  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
-}
-/* Info row (cover) */
-.sp-info {
-  display:flex;justify-content:space-between;align-items:center;
-  border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:1.5%;margin-bottom:1.5%;
-}
-.sp-info-label { color:var(--sp-ac,#C6A03C);font-size:clamp(5px,.9vw,8px);font-weight:700;direction:rtl; }
-.sp-info-val { color:rgba(255,255,255,.8);font-size:clamp(5px,1vw,8px);direction:rtl;text-align:right;max-width:65%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis; }
-/* Year pill */
-.sp-year {
-  background:var(--sp-ac,#C6A03C);border-radius:50px;
-  color:var(--sp-td,#07172F);font-size:clamp(5px,.9vw,8px);font-weight:800;
-  padding:1.5% 6%;text-align:center;align-self:center;margin-top:1%;
-  display:inline-block;
-}
-/* KPI grid */
-.sp-kpi-grid { display:grid;grid-template-columns:1fr 1fr 1fr;gap:2%;flex:1; }
-.sp-kpi-card {
-  background:var(--sp-card,rgba(255,255,255,.07));
-  border-radius:6px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:3% 2%;border-top:2px solid var(--sp-ac,#C6A03C);
-}
-.sp-kpi-val { color:var(--sp-ac,#C6A03C);font-weight:900;font-size:clamp(8px,2vw,18px);line-height:1; }
-.sp-kpi-lbl { color:rgba(255,255,255,.6);font-size:clamp(4px,.8vw,7px);direction:rtl;text-align:center;margin-top:2%; }
-/* Placeholder */
-.sp-empty { color:rgba(255,255,255,.2);font-size:clamp(5px,1vw,9px);direction:rtl;text-align:center;margin:auto;padding:5%; }
-/* 2-col grid */
-.sp-grid2 { display:grid;grid-template-columns:1fr 1fr;gap:2%;flex:1; }
-
 /* ══ GENERATE BUTTON ══ */
 .garea{text-align:center;padding:24px 0 8px}
 .bgen{
@@ -1491,100 +1402,32 @@ select{
         </div>
       </div>
 
-      <!-- معاينة الشريحة الحية — متكيفة مع كل خطوة -->
+      <!-- معاينة الشريحة الحية -->
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;justify-content:space-between">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="display:inline-block;width:7px;height:7px;background:#22c55e;border-radius:50%;box-shadow:0 0 6px #22c55e;animation:pulse-live 2s infinite"></span>
-            <span id="preview-slide-label">معاينة حية — غلاف المذكرة</span>
-          </div>
-          <div style="display:flex;gap:4px" id="preview-nav-dots"></div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          <span style="display:inline-block;width:7px;height:7px;background:#22c55e;border-radius:50%;box-shadow:0 0 6px #22c55e"></span>
+          معاينة حية — غلاف المذكرة
         </div>
         <div class="slide-live-preview" id="slide-preview">
           <div class="slide-canvas" id="slide-canvas">
-
-            <!-- ════ SLIDE PANELS ════ -->
-            <!-- COVER -->
-            <div id="preview-cover" style="display:flex;flex-direction:column;width:100%;height:100%">
-              <div class="sp-header" id="sp-cover-header">
-                <div class="sp-header-circle"></div>
-                <div class="sp-header-title" id="sp-cover-title">عنوان المذكرة الأكاديمية</div>
-                <div class="sp-header-sub" id="sp-cover-inst">المؤسسة الجامعية</div>
-              </div>
-              <div class="sp-body" style="background:var(--sp-bg,#07172F)">
-                <div id="sp-cover-fields"></div>
-                <div id="sp-cover-year-wrap" style="display:flex;justify-content:center"><span class="sp-year" id="sp-cover-year"></span></div>
-              </div>
-            </div>
-            <!-- PLAN -->
-            <div id="preview-plan" style="display:none;flex-direction:column;width:100%;height:100%">
-              <div class="sp-header" id="sp-plan-header">
-                <div class="sp-header-circle"></div>
-                <div class="sp-header-title">خطة البحث</div>
-                <div class="sp-header-sub" id="sp-plan-sub">الفصول والمباحث</div>
-              </div>
-              <div class="sp-body" id="sp-plan-body" style="background:var(--sp-bg,#07172F)"></div>
-            </div>
-            <!-- PROBLEM -->
-            <div id="preview-problem" style="display:none;flex-direction:column;width:100%;height:100%">
-              <div class="sp-header" id="sp-problem-header">
-                <div class="sp-header-circle"></div>
-                <div class="sp-header-title">إشكالية البحث</div>
-                <div class="sp-header-sub">التساؤلات الرئيسية والفرعية</div>
-              </div>
-              <div class="sp-body" id="sp-problem-body" style="background:var(--sp-bg,#07172F)"></div>
-            </div>
-            <!-- OBJECTIVES -->
-            <div id="preview-objectives" style="display:none;flex-direction:column;width:100%;height:100%">
-              <div class="sp-header" id="sp-obj-header">
-                <div class="sp-header-circle"></div>
-                <div class="sp-header-title">أهداف الدراسة</div>
-                <div class="sp-header-sub">الأهداف والأهمية</div>
-              </div>
-              <div class="sp-body" id="sp-obj-body" style="background:var(--sp-bg,#07172F)"></div>
-            </div>
-            <!-- METHODOLOGY -->
-            <div id="preview-methodology" style="display:none;flex-direction:column;width:100%;height:100%">
-              <div class="sp-header" id="sp-meth-header">
-                <div class="sp-header-circle"></div>
-                <div class="sp-header-title">منهجية البحث</div>
-                <div class="sp-header-sub">الإجراءات والأدوات</div>
-              </div>
-              <div class="sp-body sp-grid2" id="sp-meth-body" style="background:var(--sp-bg,#07172F)"></div>
-            </div>
-            <!-- KPI -->
-            <div id="preview-kpi" style="display:none;flex-direction:column;width:100%;height:100%">
-              <div class="sp-header" id="sp-kpi-header">
-                <div class="sp-header-circle"></div>
-                <div class="sp-header-title">الإحصاءات والأرقام</div>
-                <div class="sp-header-sub">المؤشرات الكمية الرئيسية</div>
-              </div>
-              <div class="sp-body" style="background:var(--sp-bg,#07172F)">
-                <div class="sp-kpi-grid" id="sp-kpi-grid"></div>
+            <div class="slide-deco-circle" id="slide-deco"></div>
+            <div class="slide-top-strip" id="slide-strip"></div>
+            <div class="slide-body">
+              <div class="slide-content-right">
+                <div class="slide-title" id="slide-title">عنوان المذكرة الأكاديمية</div>
+                <div class="slide-subtitle" id="slide-subtitle">جامعة · كلية · قسم</div>
+                <div class="slide-accent-line" id="slide-line"></div>
+                <div class="slide-badges" id="slide-badges">
+                  <div class="slide-badge" id="sb1"></div>
+                  <div class="slide-badge" id="sb2"></div>
+                  <div class="slide-badge" id="sb3"></div>
+                </div>
               </div>
             </div>
-            <!-- RESULTS -->
-            <div id="preview-results" style="display:none;flex-direction:column;width:100%;height:100%">
-              <div class="sp-header" id="sp-res-header">
-                <div class="sp-header-circle"></div>
-                <div class="sp-header-title">أهم النتائج</div>
-                <div class="sp-header-sub">مخرجات الدراسة</div>
-              </div>
-              <div class="sp-body" id="sp-res-body" style="background:var(--sp-bg,#07172F)"></div>
-            </div>
-            <!-- CONCLUSION -->
-            <div id="preview-conclusion" style="display:none;flex-direction:column;width:100%;height:100%">
-              <div class="sp-header" id="sp-conc-header">
-                <div class="sp-header-circle"></div>
-                <div class="sp-header-title">الخاتمة والتوصيات</div>
-                <div class="sp-header-sub">الاستنتاجات والاقتراحات</div>
-              </div>
-              <div class="sp-body" id="sp-conc-body" style="background:var(--sp-bg,#07172F)"></div>
-            </div>
-
+            <div class="slide-bot-bar" id="slide-bot"></div>
           </div>
         </div>
-        <!-- اسم الثيم / مؤشر الخطوة -->
+        <!-- اسم الثيم -->
         <div id="theme-label" style="margin-top:10px;padding:10px 14px;border-radius:10px;font-size:11.5px;display:flex;align-items:center;gap:8px;transition:all .3s ease"></div>
       </div>
     </div>
@@ -2100,386 +1943,81 @@ function onPaletteChange(){
 }
 
 // ═══════════════════════════════════════════════════════
-// LIVE SLIDE PREVIEW — معاينة الشريحة الحية المتكيفة مع الشرائح الحقيقية
-// ═══════════════════════════════════════════════════════════════════════
-
-var _previewStep = 0;
-var _previewSlideIdx = 0;
-
-// خريطة: خطوة → قائمة الشرائح المتاحة
-var STEP_SLIDES = {
-  0: ['cover'],
-  1: ['cover', 'plan'],
-  2: ['problem', 'objectives'],
-  3: ['methodology', 'kpi'],
-  4: ['results', 'conclusion'],
-  5: ['cover', 'plan', 'problem', 'objectives', 'methodology', 'kpi', 'results', 'conclusion'],
-};
-
-var SLIDE_LABELS = {
-  cover: 'غلاف المذكرة',
-  plan: 'خطة البحث',
-  problem: 'الإشكالية',
-  objectives: 'الأهداف والأهمية',
-  methodology: 'المنهجية',
-  kpi: 'المؤشرات الإحصائية',
-  results: 'النتائج',
-  conclusion: 'الخاتمة والتوصيات',
-};
-
-var ALL_PANELS = ['cover','plan','problem','objectives','methodology','kpi','results','conclusion'];
-
-function showPanel(id) {
-  ALL_PANELS.forEach(p => {
-    const el = document.getElementById('preview-' + p);
-    if(el) el.style.display = (p === id) ? 'flex' : 'none';
-  });
-}
-
-function applyThemeVars(p, eng) {
-  // Map palette colors to CSS vars on slide-canvas
-  const canvas = document.getElementById('slide-canvas');
-  if(!canvas) return;
-  canvas.style.setProperty('--sp-bg', p.bg1);
-  canvas.style.setProperty('--sp-bg2', p.bg2);
-  canvas.style.setProperty('--sp-ac', p.ac);
-  // derive text-on-accent color (dark for light accents)
-  const isDarkAccent = ['#C6A03C','#E8C97B','#F59E0B','#FBBF24'].some(c => p.ac.toLowerCase().includes(c.toLowerCase().slice(1,4)));
-  canvas.style.setProperty('--sp-td', isDarkAccent ? '#07172F' : '#ffffff');
-  canvas.style.setProperty('--sp-card', 'rgba(255,255,255,0.06)');
-  // Set bg on canvas itself
-  canvas.style.background = p.bg1;
-}
-
-function applyHeaderTheme(headerId, p) {
-  const h = document.getElementById(headerId);
-  if(!h) return;
-  h.style.background = `linear-gradient(135deg, ${p.bg1} 0%, ${p.bg2} 100%)`;
-  // accent bar left side
-  h.style.borderLeft = `3px solid ${p.ac}`;
-}
-
-function mkRow(num, text, ac, td) {
-  return `<div class="sp-row">
-    <div class="sp-row-num" style="background:${ac};color:${td}">${num}</div>
-    <div class="sp-row-text">${text}</div>
-  </div>`;
-}
-
-function mkCard(label, val, ac, td) {
-  return `<div class="sp-card">
-    <div class="sp-card-label" style="background:${ac};color:${td}">${label}</div>
-    <div class="sp-card-val">${val || '<span style="opacity:.3">—</span>'}</div>
-  </div>`;
-}
-
-function mkEmpty(msg) {
-  return `<div class="sp-empty">${msg}</div>`;
-}
-
-function getListVals(containerId) {
-  return Array.from(document.querySelectorAll(`#${containerId} .df input`))
-    .map(i => i.value.trim()).filter(Boolean);
-}
-
+// LIVE SLIDE PREVIEW — معاينة الشريحة الحية
+// ═══════════════════════════════════════════════════════
 function updateLivePreview() {
   const eng = document.querySelector('input[name="engine"]:checked')?.value || 'canva';
-  const palMap = {canva: CANVA_PALETTES, classic: CLASSIC_PALETTES, premium: PREMIUM_PALETTES};
+  const palMap = {canva:CANVA_PALETTES, classic:CLASSIC_PALETTES, premium:PREMIUM_PALETTES};
   const all = palMap[eng] || CANVA_PALETTES;
   const sel = document.querySelector('input[name="palette"]:checked')?.value;
-  const p = all.find(x => x.id === sel) || all[0];
+  const p = all.find(x=>x.id===sel) || all[0];
   if(!p) return;
 
-  const ac = p.ac;
-  const td = (p.bars && p.bars[0] === p.ac) ? '#fff' : '#07172F';
+  const titleAr = document.getElementById('titleAr')?.value || 'عنوان المذكرة الأكاديمية';
+  const university = document.getElementById('university')?.value || '';
+  const faculty = document.getElementById('faculty')?.value || '';
 
-  // Apply theme vars globally
-  applyThemeVars(p, eng);
+  const canvas = document.getElementById('slide-canvas');
+  if(canvas) canvas.style.background = `linear-gradient(135deg, ${p.bg1} 0%, ${p.bg2} 100%)`;
 
-  // Current slide panel
-  const slides = STEP_SLIDES[_previewStep] || STEP_SLIDES[0];
-  if(_previewSlideIdx >= slides.length) _previewSlideIdx = 0;
-  const panelId = slides[_previewSlideIdx];
-  showPanel(panelId);
+  const deco = document.getElementById('slide-deco');
+  if(deco) deco.style.background = p.ac;
 
-  // Label
-  const lbl = document.getElementById('preview-slide-label');
-  if(lbl) lbl.textContent = 'معاينة حية — ' + (SLIDE_LABELS[panelId] || '');
+  const strip = document.getElementById('slide-strip');
+  if(strip) strip.style.background = `linear-gradient(90deg, ${p.bars[0]}, ${p.bars[2] || p.ac})`;
 
-  // Nav dots
-  const dotsEl = document.getElementById('preview-nav-dots');
-  if(dotsEl) {
-    dotsEl.innerHTML = '';
-    if(slides.length > 1) {
-      slides.forEach((s, i) => {
-        const dot = document.createElement('div');
-        dot.style.cssText = `width:6px;height:6px;border-radius:50%;cursor:pointer;transition:all .2s ease;background:${i === _previewSlideIdx ? ac : 'rgba(255,255,255,.25)'}`;
-        dot.title = SLIDE_LABELS[s] || s;
-        dot.onclick = () => { _previewSlideIdx = i; updateLivePreview(); };
-        dotsEl.appendChild(dot);
-      });
-    }
+  const titleEl = document.getElementById('slide-title');
+  if(titleEl) {
+    const shortTitle = titleAr.length > 60 ? titleAr.slice(0,60)+'...' : (titleAr || 'عنوان المذكرة الأكاديمية');
+    titleEl.textContent = shortTitle;
+    titleEl.style.fontSize = titleAr.length > 40 ? 'clamp(9px,1.8vw,14px)' : 'clamp(11px,2.2vw,17px)';
   }
 
-  // Theme on all headers
-  ALL_PANELS.forEach(pid => applyHeaderTheme('sp-' + (pid === 'cover' ? 'cover' : pid === 'plan' ? 'plan' : pid === 'problem' ? 'problem' : pid === 'objectives' ? 'obj' : pid === 'methodology' ? 'meth' : pid === 'kpi' ? 'kpi' : pid === 'results' ? 'res' : 'conc') + '-header', p));
-
-  // Helpers
-  const v = id => document.getElementById(id)?.value?.trim() || '';
-
-  // ══════════════════════════════════════════════════
-  // COVER
-  // ══════════════════════════════════════════════════
-  const titleAr = v('titleAr') || 'عنوان المذكرة الأكاديمية';
-  const university = v('university');
-  const faculty = v('faculty');
-  const department = v('department');
-  const instParts = [university, faculty, department].filter(Boolean);
-
-  const coverTitle = document.getElementById('sp-cover-title');
-  if(coverTitle) {
-    coverTitle.textContent = titleAr.length > 80 ? titleAr.slice(0,80) + '...' : titleAr;
-    coverTitle.style.fontSize = titleAr.length > 50 ? 'clamp(7px,1.5vw,11px)' : 'clamp(9px,2vw,15px)';
-  }
-  const coverInst = document.getElementById('sp-cover-inst');
-  if(coverInst) coverInst.textContent = instParts.join(' — ') || 'الجامعة — الكلية — القسم';
-
-  const coverHdr = document.getElementById('sp-cover-header');
-  if(coverHdr) coverHdr.style.background = `linear-gradient(135deg, ${p.bg1} 0%, ${p.bg2} 100%)`;
-
-  const coverFields = document.getElementById('sp-cover-fields');
-  if(coverFields) {
-    const rows = [
-      v('studentName') ? ['الطالب', v('studentName')] : null,
-      v('supervisor') ? ['المشرف', v('supervisor')] : null,
-      v('major') ? ['التخصص', v('major')] : null,
-    ].filter(Boolean);
-    if(rows.length === 0) {
-      coverFields.innerHTML = `<div class="sp-empty">أدخل بيانات الطالب لترى الغلاف</div>`;
-    } else {
-      coverFields.innerHTML = rows.map(([lbl, val]) =>
-        `<div class="sp-info">
-          <div class="sp-info-label" style="color:${ac}">${lbl} :</div>
-          <div class="sp-info-val">${val}</div>
-        </div>`
-      ).join('');
-    }
+  const subEl = document.getElementById('slide-subtitle');
+  if(subEl) {
+    const parts = [university, faculty].filter(Boolean);
+    subEl.textContent = parts.join(' · ') || 'المؤسسة الجامعية';
   }
 
-  const yr = v('year');
-  const yearWrap = document.getElementById('sp-cover-year-wrap');
-  const yearEl = document.getElementById('sp-cover-year');
-  if(yearWrap && yearEl) {
-    if(yr) {
-      yearWrap.style.display = 'flex';
-      yearEl.textContent = yr;
-      yearEl.style.background = ac;
-      yearEl.style.color = td;
-    } else {
-      yearWrap.style.display = 'none';
-    }
-  }
+  const line = document.getElementById('slide-line');
+  if(line) line.style.background = `linear-gradient(90deg, ${p.ac}, transparent)`;
 
-  // ══════════════════════════════════════════════════
-  // PLAN
-  // ══════════════════════════════════════════════════
-  const planBody = document.getElementById('sp-plan-body');
-  const planSub = document.getElementById('sp-plan-sub');
-  if(planBody) {
-    const chapters = Array.from(document.querySelectorAll('#ctree .cnode'));
-    if(planSub) planSub.textContent = chapters.length > 0 ? `${chapters.length} فصول` : 'الفصول والمباحث';
-    if(chapters.length === 0) {
-      planBody.innerHTML = mkEmpty('أضف فصولاً في الخطوة 2');
-    } else {
-      planBody.innerHTML = chapters.slice(0,7).map((node, i) => {
-        const titleInput = node.querySelector('.cn-title input');
-        const pages = node.querySelector('.cn-pages input')?.value?.trim() || '';
-        const title = titleInput?.value?.trim() || `الفصل ${i+1}`;
-        return `<div class="sp-row">
-          <div class="sp-row-num" style="background:${ac};color:${td}">${i+1}</div>
-          <div class="sp-row-text">${title}</div>
-          ${pages ? `<div style="color:rgba(255,255,255,.35);font-size:clamp(4px,.8vw,7px);flex-shrink:0">ص.${pages}</div>` : ''}
-        </div>`;
-      }).join('');
-    }
-  }
+  const badgeColors = [p.bars[0], p.bars[1] || p.bg2, p.bars[2] || p.ac];
+  ['sb1','sb2','sb3'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if(el) { el.style.background = badgeColors[i]; el.style.opacity = '.45'; }
+  });
 
-  // ══════════════════════════════════════════════════
-  // PROBLEM
-  // ══════════════════════════════════════════════════
-  const probBody = document.getElementById('sp-problem-body');
-  if(probBody) {
-    const mainProb = v('mainProblem');
-    const mainQ = v('mainQuestion');
-    const subQs = getListVals('dl-subQ');
-    let html = '';
-    if(mainProb) {
-      html += `<div class="sp-card">
-        <div class="sp-card-label" style="background:${ac};color:${td}">الإشكالية الرئيسية</div>
-        <div class="sp-card-val" style="-webkit-line-clamp:3">${mainProb}</div>
-      </div>`;
-    }
-    if(mainQ) {
-      html += `<div class="sp-card" style="border-right:2px solid ${ac}">
-        <div class="sp-card-val" style="color:${ac};font-weight:700">❓ ${mainQ}</div>
-      </div>`;
-    }
-    if(subQs.length > 0) {
-      html += subQs.slice(0,3).map((q,i) => mkRow(i+1, q, ac, td)).join('');
-    }
-    probBody.innerHTML = html || mkEmpty('أدخل الإشكالية والتساؤلات في الخطوة 3');
-  }
+  const bot = document.getElementById('slide-bot');
+  if(bot) bot.style.background = `linear-gradient(90deg, ${p.ac}, ${p.bars[2] || p.ac})`;
 
-  // ══════════════════════════════════════════════════
-  // OBJECTIVES
-  // ══════════════════════════════════════════════════
-  const objBody = document.getElementById('sp-obj-body');
-  if(objBody) {
-    const objs = getListVals('dl-obj');
-    const imps = getListVals('dl-importance');
-    const hyps = getListVals('dl-hyp');
-    let html = '';
-    if(objs.length > 0) {
-      html += `<div style="color:${ac};font-size:clamp(5px,.9vw,8px);font-weight:800;direction:rtl;margin-bottom:1%">الأهداف</div>`;
-      html += objs.slice(0,3).map((o,i) => mkRow(i+1, o, ac, td)).join('');
-    }
-    if(imps.length > 0) {
-      html += `<div style="color:rgba(255,255,255,.4);font-size:clamp(4px,.8vw,7px);direction:rtl;margin:2% 0 1%">الأهمية</div>`;
-      html += imps.slice(0,2).map((o,i) => mkRow(i+1, o, ac, td)).join('');
-    }
-    if(hyps.length > 0) {
-      html += `<div style="color:rgba(255,255,255,.4);font-size:clamp(4px,.8vw,7px);direction:rtl;margin:2% 0 1%">الفرضيات</div>`;
-      html += hyps.slice(0,2).map((o,i) => mkRow(i+1, o, ac, td)).join('');
-    }
-    objBody.innerHTML = html || mkEmpty('أدخل الأهداف في الخطوة 3');
-  }
-
-  // ══════════════════════════════════════════════════
-  // METHODOLOGY (2-col grid like real slide)
-  // ══════════════════════════════════════════════════
-  const methBody = document.getElementById('sp-meth-body');
-  if(methBody) {
-    const fields = [
-      v('methodology') ? ['المنهج', v('methodology')] : null,
-      v('sampleType') ? ['نوع العينة', v('sampleType')] : null,
-      v('sampleSize') ? ['حجم العينة', v('sampleSize')] : null,
-      v('tool') ? ['الأداة', v('tool')] : null,
-    ].filter(Boolean);
-    if(fields.length === 0) {
-      methBody.innerHTML = mkEmpty('أدخل بيانات المنهجية في الخطوة 4');
-    } else {
-      methBody.innerHTML = fields.slice(0,4).map(([lbl, val]) => mkCard(lbl, val, ac, td)).join('');
-    }
-  }
-
-  // ══════════════════════════════════════════════════
-  // KPI
-  // ══════════════════════════════════════════════════
-  const kpiGrid = document.getElementById('sp-kpi-grid');
-  if(kpiGrid) {
-    const kpis = Array.from(document.querySelectorAll('#kgrid .kcard')).map(c => {
-      const [l, vEl] = c.querySelectorAll('input');
-      return { label: l?.value?.trim() || '', value: vEl?.value?.trim() || '' };
-    }).filter(k => k.label && k.value);
-    if(kpis.length === 0) {
-      kpiGrid.style.display = 'block';
-      kpiGrid.innerHTML = mkEmpty('أضف مؤشرات KPI في الخطوة 4');
-    } else {
-      kpiGrid.style.display = 'grid';
-      kpiGrid.innerHTML = kpis.slice(0,6).map(k =>
-        `<div class="sp-kpi-card" style="border-top-color:${ac}">
-          <div class="sp-kpi-val" style="color:${ac}">${k.value}</div>
-          <div class="sp-kpi-lbl">${k.label}</div>
-        </div>`
-      ).join('');
-    }
-  }
-
-  // ══════════════════════════════════════════════════
-  // RESULTS
-  // ══════════════════════════════════════════════════
-  const resBody = document.getElementById('sp-res-body');
-  if(resBody) {
-    const results = getListVals('dl-results');
-    if(results.length === 0) {
-      resBody.innerHTML = mkEmpty('أدخل النتائج في الخطوة 5');
-    } else {
-      resBody.innerHTML = results.slice(0,6).map((r,i) => mkRow(i+1, r, ac, td)).join('');
-    }
-  }
-
-  // ══════════════════════════════════════════════════
-  // CONCLUSION
-  // ══════════════════════════════════════════════════
-  const concBody = document.getElementById('sp-conc-body');
-  if(concBody) {
-    const conc = v('conclusion');
-    const recs = getListVals('dl-recs');
-    let html = '';
-    if(conc) {
-      html += `<div class="sp-card">
-        <div class="sp-card-label" style="background:${ac};color:${td}">الخاتمة</div>
-        <div class="sp-card-val" style="-webkit-line-clamp:3">${conc}</div>
-      </div>`;
-    }
-    if(recs.length > 0) {
-      html += `<div style="color:${ac};font-size:clamp(5px,.9vw,8px);font-weight:800;direction:rtl;margin:2% 0 1%">التوصيات</div>`;
-      html += recs.slice(0,4).map((r,i) => mkRow(i+1, r, ac, td)).join('');
-    }
-    concBody.innerHTML = html || mkEmpty('أدخل الخاتمة والتوصيات في الخطوة 5');
-  }
-
-  // ══════════════════════════════════════════════════
-  // THEME LABEL (bottom info)
-  // ══════════════════════════════════════════════════
-  const themeLbl = document.getElementById('theme-label');
-  if(themeLbl) {
-    const fam = eng === 'canva' ? (
+  const lbl = document.getElementById('theme-label');
+  if(lbl) {
+    const fam = eng==='canva' ? (
       ['navy_gold','forest','midnight_purple','sand_gold'].includes(p.id) ? 'NOIR' :
       ['dark_teal','charcoal_orange','burgundy'].includes(p.id) ? 'VIVID' : 'MINIMAL'
     ) : eng.toUpperCase();
-    themeLbl.style.background = `linear-gradient(135deg, ${p.bg1}, ${p.bg2})`;
-    themeLbl.style.color = '#fff';
-    themeLbl.style.borderRadius = '10px';
-    themeLbl.style.padding = '10px 14px';
-    themeLbl.innerHTML = `
-      <div style="display:flex;gap:3px;align-items:flex-end">${p.bars.map((c,j) =>
-        `<div style="width:10px;height:${[16,10,13,8][j]}px;background:${c};border-radius:2px"></div>`
-      ).join('')}</div>
-      <div style="font-weight:700;font-size:12px;color:${ac};margin-right:6px">${p.name}</div>
+    lbl.style.background = `linear-gradient(135deg, ${p.bg1}, ${p.bg2})`;
+    lbl.style.color = '#fff';
+    lbl.style.borderRadius = '10px';
+    lbl.style.padding = '10px 14px';
+    lbl.innerHTML = `
+      <div style="display:flex;gap:3px;align-items:flex-end">${p.bars.map((c,j)=>`<div style="width:10px;height:${[16,10,13,8][j]}px;background:${c};border-radius:2px"></div>`).join('')}</div>
+      <div style="font-weight:700;font-size:12px;color:${p.ac};margin-right:6px">${p.name}</div>
       ${fam ? `<span style="background:rgba(255,255,255,.12);padding:2px 8px;border-radius:99px;font-size:9px;font-weight:800;color:rgba(255,255,255,.7)">${fam}</span>` : ''}
       <div style="color:rgba(255,255,255,.5);font-size:10px;margin-right:auto">${p.desc}</div>
     `;
   }
 }
 
-// ─── ربط جميع المدخلات ──────────────────────────────────────────
-(function bindAllLiveFields() {
-  const ids = [
-    'titleAr','university','faculty','department',
-    'studentName','supervisor','coSupervisor','major','year','level',
-    'mainProblem','mainQuestion',
-    'methodology','sampleType','sampleSize','tool',
-    'conclusion',
-  ];
+(function bindLiveFields(){
+  const ids = ['titleAr','university','faculty','studentName','supervisor','year'];
   ids.forEach(id => {
     const el = document.getElementById(id);
     if(el) el.addEventListener('input', updateLivePreview);
   });
-  // Dynamic lists
-  ['dl-subQ','dl-hyp','dl-obj','dl-importance','dl-results','dl-recs','dl-axes','kgrid'].forEach(lid => {
-    const el = document.getElementById(lid);
-    if(el) el.addEventListener('input', updateLivePreview);
-  });
-  // Chapters
-  document.addEventListener('input', e => {
-    if(e.target.closest('#ctree')) updateLivePreview();
-  });
-  // KPI
-  document.addEventListener('input', e => {
-    if(e.target.closest('#kgrid')) updateLivePreview();
-  });
 })();
+
 // ═══════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════
@@ -2494,11 +2032,8 @@ function goTo(n){
   document.getElementById('pbar').style.setProperty('--p',(n/5*100)+'%');
   window.scrollTo({top:0,behavior:'smooth'});
   autoSave();
-  // تحديث المعاينة الحية عند كل خطوة — عرض الشريحة الجديدة
-  _previewStep = n;
-  // للخطوات 1–4: عرض الشريحة الثانية (الجديدة) افتراضياً
-  _previewSlideIdx = (n >= 1 && n <= 4) ? 1 : 0;
-  setTimeout(updateLivePreview, 80);
+  // تحديث المعاينة الحية عند الوصول للخطوة السادسة
+  if(n===5) setTimeout(updateLivePreview, 80);
 }
 
 function validate0(){

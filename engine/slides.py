@@ -229,20 +229,15 @@ def make_intro(prs, req, T):
     for i,(lbl,val) in enumerate(items[:2]):
         x = 1.2 + i*(cw+0.3)
         cah = avh - HH - PAD*2
-        fs  = auto_fs(val, cw-0.4, cah, smax=14, smin=7.5)
-        # Card always fills full available height for visual balance
-        c   = rect(slide, x, cy, cw, avh, T.card_rgb)
+        fs  = auto_fs(val, cw-0.4, cah, smax=13, smin=7.5)
+        c   = rrect(slide, x, cy, cw, avh, T.card_rgb, radius_pct=10)
         if c: shadow(c, blur=14, dist=4, alpha=0.35)
         cs  = rrect(slide, x, cy, cw, HH, T.accent_rgb, radius_pct=0)
         if cs: gradient_fill(cs, T.accent_grad1, T.accent_grad2, 0)
-        txt(slide, lbl, x+0.2, cy+0.05, cw-0.4, HH,
+        txt(slide, lbl, x+0.2, cy, cw-0.4, HH,
             font=_FONT, size=13, bold=True, color=T.text_dark_rgb,
             align=PP_ALIGN.RIGHT, rtl=True)
-        # Vertically center text inside card body
-        actual_th = text_h(val, cw-0.4, fs)
-        text_area_h = avh - HH
-        text_y = cy + HH + max(PAD, (text_area_h - actual_th) / 2)
-        txt(slide, val, x+0.2, text_y, cw-0.4, actual_th + 0.1,
+        txt(slide, val, x+0.2, cy+HH+PAD, cw-0.4, cah,
             font=_FONT, size=fs, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.RIGHT, rtl=True)
     return slide
@@ -279,21 +274,14 @@ def make_plan(prs, req, T):
         by = y + (rh-bs)/2
         nb = oval(slide, 1.5, by, bs, bs, T.accent_rgb)
         if nb: gradient_fill(nb, T.accent_grad1, T.accent_grad2, 0)
-        num_fs = max(8, bs*18)
-        num_lh = num_fs * 0.0353 * 1.25
-        num_y  = by + (bs - num_lh) / 2
-        txt(slide, str(i+1), 1.5, num_y, bs, num_lh,
-            font="Calibri", size=num_fs, bold=True, color=T.text_dark_rgb,
-            align=PP_ALIGN.CENTER, rtl=False, margin=0)
-        pages_w = 2.0 if ch.pages else 0
-        title_w = RW - pages_w - 0.3
-        title_th = text_h(ch.title, title_w, fs)
-        title_y  = y + max(0.05, (rh - title_th) / 2)
-        txt(slide, ch.title, 2.5, title_y, title_w, title_th + 0.1,
+        txt(slide, str(i+1), 1.5, by, bs, bs,
+            font="Calibri", size=max(8, bs*20), bold=True, color=T.text_dark_rgb,
+            align=PP_ALIGN.CENTER, rtl=False)
+        txt(slide, ch.title, 2.5, y+0.05, RW, rh-0.1,
             font=_FONT, size=fs, bold=False, color=T.text_light_rgb,
             align=PP_ALIGN.RIGHT, rtl=True)
         if ch.pages:
-            txt(slide, ch.pages, 1.55, y, pages_w, rh,
+            txt(slide, ch.pages, W-3.8, y, 2.4, rh,
                 font="Calibri", size=10, bold=False, color=T.muted_rgb,
                 align=PP_ALIGN.LEFT, rtl=False)
     return slide
